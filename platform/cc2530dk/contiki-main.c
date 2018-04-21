@@ -1,20 +1,23 @@
 #include "contiki.h"
 #include "soc.h"
+#include "stack.h"
 #include "sys/clock.h"
 #include "sys/autostart.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
-#include "dev/uart0.h"
+#include "dev/io-arch.h"
 #include "dev/dma.h"
 #include "dev/cc2530-rf.h"
+#include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "dev/clock-isr.h"
+#include "dev/port2.h"
 #include "dev/lpm.h"
 #include "dev/button-sensor.h"
 #include "dev/adc-sensor.h"
 #include "dev/leds-arch.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"
@@ -40,12 +43,11 @@ PROCESS_NAME(viztool_process);
 #endif
 /*---------------------------------------------------------------------------*/
 #if CLOCK_CONF_STACK_FRIENDLY
-extern volatile __bit sleep_flag;
+extern volatile uint8_t sleep_flag;
 #endif
 /*---------------------------------------------------------------------------*/
-extern rimeaddr_t rimeaddr_node_addr;
-static __data int r;
-static __data int len;
+extern linkaddr_t linkaddr_node_addr;
+static CC_AT_DATA uint16_t len;
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -64,7 +66,7 @@ fade(int l) CC_NON_BANKED
   volatile int i, a;
   int k, j;
   for(k = 0; k < 400; ++k) {
-    j = k > 200? 400 - k: k;
+    j = k > 200 ? 400 - k : k;
 
     leds_on(l);
     for(i = 0; i < j; ++i) {
@@ -78,18 +80,20 @@ fade(int l) CC_NON_BANKED
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr(void) CC_NON_BANKED
+set_rf_params(void) CC_NON_BANKED
 {
   char i;
+  uint16_t short_addr;
+  uint8_t ext_addr[8];
 
 #if CC2530_CONF_MAC_FROM_PRIMARY
-  __xdata unsigned char * macp = &X_IEEE_ADDR;
+  __xdata unsigned char *macp = &X_IEEE_ADDR;
 #else
-  __code unsigned char * macp = (__code unsigned char *) 0xFFE8;
+  __code unsigned char *macp = (__code unsigned char *)0xFFE8;
 #endif
 
   PUTSTRING("Rime is 0x");
-  PUTHEX(sizeof(rimeaddr_t));
+  PUTHEX(sizeof(linkaddr_t));
   PUTSTRING(" bytes long\n");
 
 #if CC2530_CONF_MAC_FROM_PRIMARY
@@ -113,8 +117,12 @@ set_rime_addr(void) CC_NON_BANKED
   FMAP = CC2530_LAST_FLASH_BANK;
 #endif
 
-  for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-    rimeaddr_node_addr.u8[i] = *macp;
+  /*
+   * Read IEEE address from flash, store in ext_addr.
+   * Invert endianness (from little to big endian)
+   */
+  for(i = 7; i >= 0; --i) {
+    ext_addr[i] = *macp;
     macp++;
   }
 
@@ -124,18 +132,28 @@ set_rime_addr(void) CC_NON_BANKED
   ENABLE_INTERRUPTS();
 #endif
 
+  short_addr = ext_addr[7];
+  short_addr |= ext_addr[6] << 8;
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
+
   /* Now the address is stored MSB first */
 #if STARTUP_CONF_VERBOSE
   PUTSTRING("Rime configured with address ");
-  for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
-    PUTHEX(rimeaddr_node_addr.u8[i]);
+  for(i = 0; i < LINKADDR_SIZE - 1; i++) {
+    PUTHEX(linkaddr_node_addr.u8[i]);
     PUTCHAR(':');
   }
-  PUTHEX(rimeaddr_node_addr.u8[i]);
+  PUTHEX(linkaddr_node_addr.u8[i]);
   PUTCHAR('\n');
 #endif
 
-  cc2530_rf_set_addr(IEEE802154_PANID);
+  /* Write params to RF registers */
+  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2530_RF_CHANNEL);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -147,6 +165,8 @@ main(void) CC_NON_BANKED
   soc_init();
   rtimer_init();
 
+  stack_poison();
+
   /* Init LEDs here */
   leds_init();
   leds_off(LEDS_ALL);
@@ -155,24 +175,23 @@ main(void) CC_NON_BANKED
   /* initialize process manager. */
   process_init();
 
-  /* Init UART */
-  uart0_init();
-
 #if DMA_ON
   dma_init();
 #endif
 
+  io_arch_init();
+
 #if SLIP_ARCH_CONF_ENABLE
   slip_arch_init(0);
 #else
-  uart0_set_input(serial_line_input_byte);
+  io_arch_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
   fade(LEDS_RED);
 
   PUTSTRING("##########################################\n");
   putstring(CONTIKI_VERSION_STRING "\n");
-  putstring("TI SmartRF05 EB\n");
+  putstring(MODEL_STRING);
   switch(CHIPID) {
   case 0xA5:
     putstring("cc2530");
@@ -233,7 +252,7 @@ main(void) CC_NON_BANKED
 
   /* initialize the netstack */
   netstack_init();
-  set_rime_addr();
+  set_rf_params();
 
 #if BUTTON_SENSOR_ON || ADC_SENSOR_ON
   process_start(&sensors_process, NULL);
@@ -241,11 +260,11 @@ main(void) CC_NON_BANKED
   ADC_SENSOR_ACTIVATE();
 #endif
 
-#if UIP_CONF_IPV6
-  memcpy(&uip_lladdr.addr, &rimeaddr_node_addr, sizeof(uip_lladdr.addr));
+#if NETSTACK_CONF_WITH_IPV6
+  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if VIZTOOL_CONF_ON
   process_start(&viztool_process, NULL);
@@ -261,6 +280,7 @@ main(void) CC_NON_BANKED
   fade(LEDS_YELLOW);
 
   while(1) {
+    uint8_t r;
     do {
       /* Reset watchdog and handle polls and events */
       watchdog_periodic();
@@ -315,8 +335,7 @@ main(void) CC_NON_BANKED
     if(SLEEPCMD & SLEEP_MODE0) {
 #endif /* LPM_MODE==LPM_MODE_PM2 */
 
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
       /* We are only interested in IRQ energest while idle or in LPM */
       ENERGEST_IRQ_RESTORE(irq_energest);
@@ -332,8 +351,7 @@ main(void) CC_NON_BANKED
       /* Remember energest IRQ for next pass */
       ENERGEST_IRQ_SAVE(irq_energest);
 
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
-      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 
 #if (LPM_MODE==LPM_MODE_PM2)
       SLEEPCMD &= ~SLEEP_OSC_PD;            /* Make sure both HS OSCs are on */

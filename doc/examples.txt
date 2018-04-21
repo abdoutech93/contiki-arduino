@@ -1,7 +1,6 @@
 /** \example example-program.c */
 /** \example example-pollhandler.c */
 /** \example example-list.c */
-/** \example example-packet-drv.c */
 /** \example example-psock-server.c */
 
 /** \example multi-threading.c */
@@ -12,7 +11,6 @@
 /** \example example-mesh.c */
 /** \example example-multihop.c */
 /** \example example-rucb.c */
-/** \example example-rudolph0.c */
 /** \example example-rudolph1.c */
 /** \example example-rudolph2.c */
 /** \example example-runicast.c */

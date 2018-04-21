@@ -3,9 +3,9 @@
  * compile. Allows you to save needing to compile all of uIP in just
  * to get a few things */
 
-#define UIP_CONF_IPV6 1
+#define NETSTACK_CONF_WITH_IPV6 1
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include <stdio.h>
 #include <arpa/inet.h>
 
@@ -72,4 +72,10 @@ uint16_t
 uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6);
+}
+
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_link_neighbor_callback(int status, int numtx)
+{
 }

@@ -28,28 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell-exec.c,v 1.3 2010/03/29 12:48:39 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "shell.h"
 #include "serial-shell.h"
-
-#include "dev/watchdog.h"
-
-#include "net/rime.h"
-#include "dev/cc2420.h"
-#include "dev/leds.h"
-#include "dev/light.h"
-#include "dev/sht11.h"
-#include "dev/battery-sensor.h"
-
-#include "lib/checkpoint.h"
-
-#include "net/rime/timesynch.h"
-
-#include <stdio.h>
-#include <string.h>
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sky_shell_process, "Sky Contiki shell");
@@ -73,7 +56,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*shell_sky_init();*/
   shell_text_init();
   /*shell_time_init();*/
-  /*  shell_checkpoint_init();*/
   shell_exec_init();
   shell_base64_init();
 

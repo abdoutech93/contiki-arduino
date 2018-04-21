@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: wget.c,v 1.2 2010/06/14 14:12:43 nifi Exp $
  */
 
 /**
@@ -42,7 +41,7 @@
 #include "dev/leds.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define DEBUG_LEDS 0
 #undef LEDS_ON

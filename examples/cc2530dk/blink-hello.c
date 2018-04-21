@@ -2,7 +2,7 @@
  * It aims to demonstrate the co-existence of two processes:
  * One of them prints a hello world message and the other blinks the LEDs
  *
- * It is largely based on hello_world in $(CONTIKI)/examples/sensinode
+ * It is largely based on hello_world of the original sensinode port
  *
  * Author: George Oikonomou - <oikonomou@users.sourceforge.net>
  */
@@ -33,7 +33,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
     if(ev == PROCESS_EVENT_TIMER) {
       printf("Sensor says #%u\n", count);
-      count ++;
+      count++;
 
       etimer_reset(&et_hello);
     }

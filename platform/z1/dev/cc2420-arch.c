@@ -26,14 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.1 2010/11/07 08:38:51 enricmcalvo Exp $
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
 #include "dev/spi.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "isr_compat.h"
+
+#ifdef CC2420_CONF_SFD_TIMESTAMPS
+#define CONF_SFD_TIMESTAMPS CC2420_CONF_SFD_TIMESTAMPS
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
 
 #ifndef CONF_SFD_TIMESTAMPS
 #define CONF_SFD_TIMESTAMPS 0
@@ -41,7 +44,7 @@
 
 #ifdef CONF_SFD_TIMESTAMPS
 #include "cc2420-arch-sfd.h"
-#endif
+#endif /* CONF_SFD_TIMESTAMPS */
 
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -68,7 +71,7 @@ cc2420_arch_init(void)
 
 #if CONF_SFD_TIMESTAMPS
   cc2420_arch_sfd_init();
-#endif
+#endif /* CONF_SFD_TIMESTAMPS */
 
   CC2420_SPI_DISABLE();                /* Unselect radio. */
 }

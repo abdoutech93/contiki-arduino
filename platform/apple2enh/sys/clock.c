@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: clock.c,v 1.3 2008/07/12 14:46:03 oliverschmidt Exp $
  */
 
 #include <apple2.h>
@@ -64,7 +63,7 @@ clock_update(void)
   static unsigned int count;
 
   count += tick;
-  if(count > 2000) {
+  if(count > 1000) {
     count = 0;
     ++time;
   }

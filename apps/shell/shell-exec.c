@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-exec.c,v 1.4 2009/03/26 12:22:52 fros4943 Exp $
  */
 
 /**
@@ -117,11 +116,13 @@ PROCESS_THREAD(shell_exec_process, ev, data)
     shell_output_str(&exec_command, print, symbol);
 
     if(ret == ELFLOADER_OK) {
+#if !PROCESS_CONF_NO_PROCESS_NAMES
       int i;
       for(i = 0; elfloader_autostart_processes[i] != NULL; ++i) {
 	shell_output_str(&exec_command, "exec: starting process ",
 			 elfloader_autostart_processes[i]->name);
       }
+#endif
       autostart_start(elfloader_autostart_processes);
     }
 

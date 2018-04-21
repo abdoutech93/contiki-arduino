@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.17 2010/10/12 11:34:08 adamdunkels Exp $
  */
 
 /**
@@ -39,21 +38,22 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell-sky.h"
 
 #include "dev/watchdog.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 #include "dev/light-sensor.h"
 #include "dev/battery-sensor.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #include "net/rime/timesynch.h"
 
-#include "node-id.h"
+#include "sys/node-id.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -85,8 +85,6 @@ SHELL_COMMAND(rfchannel_command,
 	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
 	      &shell_rfchannel_process);
 /*---------------------------------------------------------------------------*/
-#define MAX(a, b) ((a) > (b)? (a): (b))
-#define MIN(a, b) ((a) < (b)? (a): (b))
 struct spectrum {
   int channel[16];
 };

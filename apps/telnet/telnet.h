@@ -28,11 +28,10 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: telnet.h,v 1.2 2009/03/05 23:56:56 adamdunkels Exp $
  *
  */
-#ifndef __TELNET_H__
-#define __TELNET_H__
+#ifndef TELNET_H_
+#define TELNET_H_
 
 #include "contiki-net.h"
 
@@ -58,4 +57,4 @@ void telnet_sent(struct telnet_state *s);
 void telnet_aborted(struct telnet_state *s);
 void telnet_timedout(struct telnet_state *s);
 void telnet_newdata(struct telnet_state *s, char *data, uint16_t len);
-#endif /* __TELNET_H__ */
+#endif /* TELNET_H_ */

@@ -59,7 +59,7 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -88,7 +88,7 @@
 #include "net/rime/rime-udp.h"
 #endif
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 /* Track interrupt flow through mac, rdc and radio driver */
 //#define DEBUGFLOWSIZE 32
@@ -258,32 +258,32 @@ uint8_t i;
 
   /* Set addresses BEFORE starting tcpip process */
 
-  rimeaddr_t addr;
+  linkaddr_t addr;
 
   if (params_get_eui64(addr.u8)) {
       PRINTA("Random EUI64 address generated\n");
   }
  
-#if UIP_CONF_IPV6 
-  memcpy(&uip_lladdr.addr, &addr.u8, sizeof(rimeaddr_t));
+#if NETSTACK_CONF_WITH_IPV6 
+  memcpy(&uip_lladdr.addr, &addr.u8, sizeof(linkaddr_t));
 #elif WITH_NODE_ID
   node_id=get_panaddr_from_eeprom();
   addr.u8[1]=node_id&0xff;
   addr.u8[0]=(node_id&0xff00)>>8;
   PRINTA("Node ID from eeprom: %X\n",node_id);
 #endif  
-  rimeaddr_set_node_addr(&addr); 
+  linkaddr_set_node_addr(&addr); 
 
   rf230_set_pan_addr(params_get_panid(),params_get_panaddr(),(uint8_t *)&addr.u8);
   rf230_set_channel(params_get_channel());
   rf230_set_txpower(params_get_txpower());
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   PRINTA("EUI-64 MAC: %x-%x-%x-%x-%x-%x-%x-%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 #else
   PRINTA("MAC address ");
   uint8_t i;
-  for (i=sizeof(rimeaddr_t); i>0; i--){
+  for (i=sizeof(linkaddr_t); i>0; i--){
     PRINTA("%x:",addr.u8[i-1]);
   }
   PRINTA("\n");
@@ -308,7 +308,9 @@ uint8_t i;
 
 #endif /* ANNOUNCE_BOOT */
 
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 
 #ifdef RAVEN_LCD_INTERFACE
   process_start(&raven_lcd_process, NULL);
@@ -338,7 +340,7 @@ uint8_t i;
 #if 0
 {  
   uip_ip6addr_t ipaddr;
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 //  uip_ds6_prefix_add(&ipaddr,64,0);
 }
@@ -391,7 +393,7 @@ uint8_t i;
 #endif
 }
 
-#if ROUTES && UIP_CONF_IPV6
+#if ROUTES && NETSTACK_CONF_WITH_IPV6
 static void
 ipaddr_add(const uip_ipaddr_t *addr)
 {
@@ -419,6 +421,9 @@ ipaddr_add(const uip_ipaddr_t *addr)
 int
 main(void)
 {
+#if NETSTACK_CONF_WITH_IPV6
+  uip_ds6_nbr_t *nbr;
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   initialize();
 
   while(1) {
@@ -503,7 +508,7 @@ extern volatile unsigned long radioontime;
       clocktime+=1;
 #endif
 
-#if PINGS && UIP_CONF_IPV6
+#if PINGS && NETSTACK_CONF_WITH_IPV6
 extern void raven_ping6(void); 
 if ((clocktime%PINGS)==1) {
   PRINTF("**Ping\n");
@@ -511,11 +516,9 @@ if ((clocktime%PINGS)==1) {
 }
 #endif
 
-#if ROUTES && UIP_CONF_IPV6
+#if ROUTES && NETSTACK_CONF_WITH_IPV6
 if ((clocktime%ROUTES)==2) {
       
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
@@ -526,27 +529,29 @@ extern uip_ds6_netif_t uip_ds6_if;
       PRINTF("\n");
     }
   }
-  PRINTF("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      ipaddr_add(&uip_ds6_nbr_cache[i].ipaddr);
-      PRINTF("\n");
-      j=0;
-    }
+  PRINTF("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
+
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    ipaddr_add(&nbr->ipaddr);
+    PRINTF("\n");
+    j=0;
   }
   if (j) PRINTF("  <none>");
   PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      ipaddr_add(&uip_ds6_routing_table[i].ipaddr);
-      PRINTF("/%u (via ", uip_ds6_routing_table[i].length);
-      ipaddr_add(&uip_ds6_routing_table[i].nexthop);
- //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PRINTF(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
- //     } else {
- //       PRINTF(")\n");
- //     }
-      j=0;
+  {
+    uip_ds6_route_t *r;
+    PRINTF("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
+    j = 1;
+    for(r = uip_ds6_route_head();
+        r != NULL;
+        r = uip_ds6_route_next(r)) {
+      ipaddr_add(&r->ipaddr);
+      PRINTF("/%u (via ", r->length);
+      ipaddr_add(uip_ds6_route_nexthop(r));
+      PRINTF(") %lus\n", r->state.lifetime);
+      j = 0;
     }
   }
   if (j) PRINTF("  <none>");

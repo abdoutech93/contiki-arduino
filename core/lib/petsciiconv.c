@@ -29,7 +29,6 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: petsciiconv.c,v 1.2 2010/01/31 23:46:19 oliverschmidt Exp $
  *
  */
 
@@ -73,14 +72,13 @@ static unsigned char ascii2petscii[128] = {
   0x58,0x59,0x5a,0xdb,0xdd,0xdd,0x5e,0xdf,
 };
 
-static unsigned int i;
-static unsigned char *ptr;
-
 /*-----------------------------------------------------------------------------------*/
 void
 petsciiconv_toascii(char *buf, unsigned int len)
 {
-  static char c;
+  unsigned int i;
+  char *ptr;
+  char c;
   
   ptr = buf;
   for(i = len; i > 0; --i) {
@@ -109,6 +107,9 @@ petsciiconv_toascii(char *buf, unsigned int len)
 void
 petsciiconv_topetscii(char *buf, unsigned int len)
 {
+  unsigned int i;
+  char *ptr;
+
   ptr = buf;
   for(i = len; i > 0; --i) {
     *ptr = ascii2petscii[*ptr & 0x7f];

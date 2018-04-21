@@ -28,14 +28,25 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.6 2010/03/09 08:11:05 fros4943 Exp $
  */
 
-#ifndef __COOJA_RADIO_H__
-#define __COOJA_RADIO_H__
+#ifndef COOJA_RADIO_H_
+#define COOJA_RADIO_H_
 
 #include "contiki.h"
 #include "dev/radio.h"
+
+#ifdef COOJA_CONF_SIMULATE_TURNAROUND
+#define COOJA_SIMULATE_TURNAROUND COOJA_CONF_SIMULATE_TURNAROUND
+#else
+#define COOJA_SIMULATE_TURNAROUND 1
+#endif
+
+#ifdef COOJA_CONF_TRANSMIT_ON_CCA
+#define COOJA_TRANSMIT_ON_CCA COOJA_CONF_TRANSMIT_ON_CCA
+#else
+#define COOJA_TRANSMIT_ON_CCA 1
+#endif
 
 extern const struct radio_driver cooja_radio_driver;
 
@@ -65,4 +76,11 @@ radio_signal_strength_last(void);
 int
 radio_signal_strength_current(void);
 
-#endif /* __COOJA_RADIO_H__ */
+/**
+ * Link quality indicator of last received packet.
+ */
+int
+radio_LQI(void);
+
+
+#endif /* COOJA_RADIO_H_ */

@@ -28,11 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-otf.c,v 1.2 2010/10/19 18:29:04 adamdunkels Exp $
  */
-
-/** \addtogroup esb
- * @{ */
 
 /**
  *
@@ -520,4 +516,3 @@ uipcall(void *state)
   }
 }
 /*---------------------------------------------------------------------*/
-/** @} */

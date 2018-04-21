@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: dmacro.dm,v 1.11 2006/03/18 19:43:52 nfi Exp $
  */
 
 /**
@@ -49,7 +48,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;
@@ -76,9 +75,7 @@ json_ws_udp_setup(const char *host, uint16_t port)
   ipaddr = &server_ipaddr;
   if(uiplib_ipaddrconv(host, &server_ipaddr) == 0) {
 #if 0 && UIP_UDP
-    ipaddr = resolv_lookup(host);
-
-    if(ipaddr == NULL) {
+    if(resolv_lookup(host, &ipaddr) != RESOLV_STATUS_CACHED) {
       return 0;
     }
 #else /* UIP_UDP */

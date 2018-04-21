@@ -30,7 +30,6 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-mouse.c,v 1.3 2009/10/18 09:33:08 oliverschmidt Exp $
  */
 
 #include <mouse.h>
@@ -50,22 +49,33 @@ static uint8_t okay;
 void
 ctk_mouse_init(void)
 {
+#ifdef STATIC_MOUSE
+
+  okay = mouse_install(&mouse_def_callbacks, &STATIC_MOUSE) == MOUSE_ERR_OK;
+  if(okay) {
+    atexit((void (*)(void))mouse_uninstall);
+  }
+
+#else /* STATIC_MOUSE */
+
   struct mod_ctrl module_control = {cfs_read};
 
-  module_control.callerdata = cfs_open(mouse_stddrv, CFS_READ);
+  module_control.callerdata = cfs_open("contiki.mou", CFS_READ);
   okay = module_control.callerdata >= 0;
   if(okay) {
     okay = mod_load(&module_control) == MLOAD_OK;
     if(okay) {
       okay = mouse_install(&mouse_def_callbacks, module_control.module) == MOUSE_ERR_OK;
       if(okay) {
-	atexit((void (*)(void))mouse_uninstall);
+        atexit((void (*)(void))mouse_uninstall);
       } else {
-	mod_free(module_control.module);
+        mod_free(module_control.module);
       }
     }
     cfs_close(module_control.callerdata);
   }
+
+#endif /* STATIC_MOUSE */
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned short

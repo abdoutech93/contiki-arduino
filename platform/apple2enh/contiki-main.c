@@ -30,14 +30,24 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.23 2010/10/27 22:17:39 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
 #include "ctk/ctk.h"
 #include "sys/log.h"
 #include "lib/config.h"
+#include "dev/slip.h"
 #include "net/ethernet-drv.h"
+
+#if WITH_SLIP
+#define DRIVER_PROCESS &slip_process,
+#define SLIP_INIT() slip_arch_init(0)
+#define SLIP_POLL() slip_arch_poll()
+#else /* WITH_SLIP */
+#define DRIVER_PROCESS &ethernet_process,
+#define SLIP_INIT()
+#define SLIP_POLL()
+#endif /* WITH_SLIP */
 
 #if WITH_GUI
 #define CTK_PROCESS &ctk_process,
@@ -46,68 +56,65 @@
 #endif /* WITH_GUI */
 
 #if WITH_DNS
-#define RESOLV_PROCESS &resolv_process,
+#define RESOLV_PROCESS ,&resolv_process
 #else /* WITH_DNS */
 #define RESOLV_PROCESS
 #endif /* WITH_DNS */
 
 PROCINIT(&etimer_process,
-	 CTK_PROCESS
-	 RESOLV_PROCESS
-	 &tcpip_process);
+         CTK_PROCESS
+         DRIVER_PROCESS
+         &tcpip_process
+         RESOLV_PROCESS);
 
 void clock_update(void);
+void slip_arch_poll(void);
 
 /*-----------------------------------------------------------------------------------*/
+#if WITH_ARGS
+
+int contiki_argc;
+char **contiki_argv;
+
+void
+main(int argc, char **argv)
+{
+  contiki_argc = argc;
+  contiki_argv = argv;
+
+#else /* WITH_ARGS */
+
 void
 main(void)
 {
-  struct ethernet_config *ethernet_config;
+
+#endif /* WITH_ARGS */
 
 #if WITH_REBOOT
   rebootafterexit();
 #endif /* WITH_REBOOT */
 
+#if WITH_80COL
   videomode(VIDEOMODE_80COL);
+#endif /* WITH_80COL */
+
+  config_read("contiki.cfg");
+
+  SLIP_INIT();
 
   process_init();
-
-#if 1
-  ethernet_config = config_read("contiki.cfg");
-#else
-  {
-    static struct ethernet_config config = {0xC0B0, "cs8900a.eth"};
-    uip_ipaddr_t addr;
-
-    uip_ipaddr(&addr, 192,168,0,128);
-    uip_sethostaddr(&addr);
-
-    uip_ipaddr(&addr, 255,255,255,0);
-    uip_setnetmask(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_setdraddr(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
-
-    ethernet_config = &config;
-  }
-#endif
-
   procinit_init();
-
-  process_start((struct process *)&ethernet_process, (char *)ethernet_config);
-
   autostart_start(autostart_processes);
 
   log_message("Contiki up and running ...", "");
-  
+
   while(1) {
 
     process_run();
 
     etimer_request_poll();
+
+    SLIP_POLL();
 
     clock_update();
   }

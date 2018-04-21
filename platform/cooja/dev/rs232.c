@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: rs232.c,v 1.4 2009/04/23 09:02:06 fros4943 Exp $
  */
 
 #include "lib/sensors.h"
@@ -38,7 +37,7 @@
 
 const struct simInterface rs232_interface;
 
-#define SERIAL_BUF_SIZE 1024
+#define SERIAL_BUF_SIZE 2048
 
 // COOJA variables
 char simSerialReceivingData[SERIAL_BUF_SIZE];
@@ -47,6 +46,7 @@ char simSerialReceivingFlag;
 
 static int (* input_handler)(unsigned char) = NULL;
 
+void simlog_char(char c);
 /*-----------------------------------------------------------------------------------*/
 void rs232_init(void) { }
 /*-----------------------------------------------------------------------------------*/

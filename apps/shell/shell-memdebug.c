@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-memdebug.c,v 1.1 2010/02/02 15:28:53 adamdunkels Exp $
  */
 
 /**
@@ -72,7 +71,7 @@ PROCESS_THREAD(shell_poke_process, ev, data)
     PROCESS_EXIT();
   }
   
-  address = (uint8_t *)(int)shell_strtolong(args, &next);
+  address = (uint8_t *)(uintptr_t)shell_strtolong(args, &next);
   if(next == args) {
     shell_output_str(&poke_command, "usage 1", "");
     PROCESS_EXIT();
@@ -107,7 +106,7 @@ PROCESS_THREAD(shell_peek_process, ev, data)
     PROCESS_EXIT();
   }
   
-  address = (uint8_t *)(int)shell_strtolong(args, &next);
+  address = (uint8_t *)(uintptr_t)shell_strtolong(args, &next);
   if(next == args) {
     shell_output_str(&peek_command, "usage 1", "");
     PROCESS_EXIT();

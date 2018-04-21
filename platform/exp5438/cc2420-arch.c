@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.9 2010/06/23 10:19:15 joxe Exp $
  */
 
 
@@ -34,7 +33,7 @@
 #include "contiki-net.h"
 
 #include "dev/spi.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "isr_compat.h"
 

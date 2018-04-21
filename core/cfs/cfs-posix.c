@@ -30,7 +30,6 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.15 2009/08/10 09:50:55 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -41,6 +40,7 @@
 #include <unistd.h>
 #endif
 
+#define CFS_IMPL 1
 #include "cfs/cfs.h"
 
 /*---------------------------------------------------------------------------*/

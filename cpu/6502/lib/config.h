@@ -30,12 +30,27 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.h,v 1.2 2007/12/21 01:04:29 oliverschmidt Exp $
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-struct ethernet_config * CC_FASTCALL config_read(char *filename);
+extern struct {
+  uip_ipaddr_t hostaddr;
+  uip_ipaddr_t netmask;
+  uip_ipaddr_t draddr;
+  uip_ipaddr_t resolvaddr;
+  union {
+    struct {
+      uint16_t addr;
+#ifndef STATIC_DRIVER
+      char     name[12+1];
+#endif /* !STATIC_DRIVER */
+    }          ethernet;
+    uint8_t    slip[5];
+  };
+} config;
 
-#endif /* __CONFIG_H__ */
+void config_read(char *filename);
+
+#endif /* CONFIG_H_ */

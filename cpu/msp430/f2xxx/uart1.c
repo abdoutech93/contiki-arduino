@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1x.c,v 1.1 2010/08/24 16:23:20 joxe Exp $
  */
 
 /*
@@ -98,8 +97,8 @@ uart1_writeb(unsigned char c)
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
-#if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
-#endif /* ! WITH_UIP */
+#if ! NETSTACK_CONF_WITH_IPV4 /* If NETSTACK_CONF_WITH_IPV4 is defined, putchar() is defined by the SLIP driver */
+#endif /* ! NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 /**
  * Initalize the RS232 port.

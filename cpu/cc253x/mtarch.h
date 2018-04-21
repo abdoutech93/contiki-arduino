@@ -29,22 +29,21 @@
  *
  */
 
- /*
-  * \file
-  * 	Stub header file for multi-threading. It doesn't do anything, it
-  * 	just exists so that mt.c can compile cleanly.
-  *
-  * 	This is based on the original mtarch.h for z80 by Takahide Matsutsuka
-  * 
-  * \author
-  *	  George Oikonomou - <oikonomou@users.sourceforge.net>
-  */
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+/*
+ * \file
+ *     Stub header file for multi-threading. It doesn't do anything, it
+ *     just exists so that mt.c can compile cleanly.
+ *
+ *     This is based on the original mtarch.h for z80 by Takahide Matsutsuka
+ *
+ * \author
+ *       George Oikonomou - <oikonomou@users.sourceforge.net>
+ */
+#ifndef MTARCH_H_
+#define MTARCH_H_
 
 struct mtarch_thread {
   unsigned char *sp;
 };
 
-#endif /* __MTARCH_H__ */
-
+#endif /* MTARCH_H_ */

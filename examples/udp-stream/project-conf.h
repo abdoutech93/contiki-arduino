@@ -26,22 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: project-conf.h,v 1.1 2010/10/28 13:11:08 simonduq Exp $
  */
 
-#ifndef __PROJECT_H__
-#define __PROJECT_H__
+#ifndef PROJECT_H_
+#define PROJECT_H_
 
 /* Free some code and RAM space */
 #define UIP_CONF_TCP                    0
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU            12
-#undef UIP_CONF_DS6_ROUTE_NBU
-#define UIP_CONF_DS6_ROUTE_NBU          12
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS            8
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES          8
 
 /* The total number of queuebuf */
 #undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM               140
+#define QUEUEBUF_CONF_NUM               128
 /* The number of queuebuf actually stored in RAM. If
    not set or equal to the total number of queuebuf,
    swapping is disabled, and CFS not linked. */
@@ -50,4 +49,4 @@
 /* Set a large (1 sector) default size for coffee files. */
 #define COFFEE_CONF_DYN_SIZE     (COFFEE_SECTOR_SIZE - COFFEE_PAGE_SIZE + 1)
 
-#endif /* __PROJECT_H__ */
+#endif /* PROJECT_H_ */

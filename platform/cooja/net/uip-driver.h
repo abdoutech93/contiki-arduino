@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip-driver.h,v 1.1 2010/03/10 12:15:52 fros4943 Exp $
  */
 
 /**
@@ -37,13 +36,17 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __UIP_DRIVER_H__
-#define __UIP_DRIVER_H__
+#ifndef UIP_DRIVER_H_
+#define UIP_DRIVER_H_
 
 #include "net/netstack.h"
 
+#if NETSTACK_CONF_WITH_IPV6
+uint8_t uip_driver_send(const uip_lladdr_t *);
+#else
 uint8_t uip_driver_send(void);
+#endif
 
 extern const struct network_driver uip_driver;
 
-#endif /* __UIP_DRIVER_H__ */
+#endif /* UIP_DRIVER_H_ */

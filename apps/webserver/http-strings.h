@@ -1,4 +1,5 @@
 extern const char http_http[8];
+extern const char http_https[9];
 extern const char http_200[5];
 extern const char http_301[5];
 extern const char http_302[5];
@@ -6,7 +7,6 @@ extern const char http_get[5];
 extern const char http_10[9];
 extern const char http_11[9];
 extern const char http_content_type[15];
-extern const char http_texthtml[10];
 extern const char http_location[11];
 extern const char http_host[7];
 extern const char http_crnl[3];
@@ -33,3 +33,4 @@ extern const char http_gif[5];
 extern const char http_jpg[5];
 extern const char http_text[6];
 extern const char http_txt[5];
+extern const char http_redirect[19];

@@ -40,8 +40,8 @@
  *         David Kopf <dak664@embarqmail.com>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 /* Platform name, type, and MCU clock rate */
 #define PLATFORM_NAME  "Raven"
@@ -49,6 +49,12 @@
 #ifndef F_CPU
 #define F_CPU          8000000UL
 #endif
+
+#include <avr/eeprom.h>
+
+/* Skip the last four bytes of the EEPROM, to leave room for things
+ * like the avrdude erase count and bootloader signaling. */
+#define EEPROM_CONF_SIZE		((E2END + 1) - 4)
 
 /* MCU_CONF_LOW_WEAR will remove the signature and eeprom from the .elf file */
 /* This reduces reprogramming wear during development */
@@ -62,18 +68,10 @@
  */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -140,39 +138,36 @@ typedef unsigned short uip_stats_t;
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-#undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
 /* TX routine passes the cca/ack result in the return parameter */
 #define RDC_CONF_HARDWARE_ACK      1
 /* TX routine does automatic cca and optional backoff */
 #define RDC_CONF_HARDWARE_CSMA     1
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         0
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
-#if UIP_CONF_IPV6
-#define RIMEADDR_CONF_SIZE        8
+#if NETSTACK_CONF_WITH_IPV6
+#define LINKADDR_CONF_SIZE        8
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
-//#define UIP_CONF_IPV6_RPL         0
+#define UIP_CONF_BUFFER_SIZE      1300
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is largely untested */
-#define RIMEADDR_CONF_SIZE        2
+#define LINKADDR_CONF_SIZE        2
 #define NETSTACK_CONF_NETWORK     rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         0
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fd00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}
+#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=UIP_DS6_DEFAULT_PREFIX_0;addr_contexts[0].prefix[1]=UIP_DS6_DEFAULT_PREFIX_1;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_1 {addr_contexts[1].prefix[0]=0xbb;addr_contexts[1].prefix[1]=0xbb;}
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_2 {addr_contexts[2].prefix[0]=0x20;addr_contexts[2].prefix[1]=0x01;addr_contexts[2].prefix[2]=0x49;addr_contexts[2].prefix[3]=0x78,addr_contexts[2].prefix[4]=0x1d;addr_contexts[2].prefix[5]=0xb1;}
 
@@ -201,12 +196,10 @@ typedef unsigned short uip_stats_t;
 #define RADIO_CONF_CALIBRATE_INTERVAL 256
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts+1, 1-16. Set zero to disable extended TX_ARET_ON mode with CCA) */
-#define RF230_CONF_AUTORETRIES    3
+#define RF230_CONF_FRAME_RETRIES    3
 /* Number of CSMA attempts 0-7. 802.15.4 2003 standard max is 5. */
-#define RF230_CONF_CSMARETRIES    5
+#define RF230_CONF_CSMA_RETRIES    5
 /* CCA theshold energy -91 to -61 dBm (default -77). Set this smaller than the expected minimum rssi to avoid packet collisions */
 /* The Jackdaw menu 'm' command is helpful for determining the smallest ever received rssi */
 #define RF230_CONF_CCA_THRES    -85
@@ -232,10 +225,10 @@ typedef unsigned short uip_stats_t;
 /* 25 bytes per UDP connection */
 #define UIP_CONF_UDP_CONNS       10
 /* See uip-ds6.h */
-#define UIP_CONF_DS6_NBR_NBU      20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS      20
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    20
+#define UIP_CONF_MAX_ROUTES    20
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -247,24 +240,28 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC         contikimac_driver
 /* Default is two CCA separated by 500 usec */
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   8
-/* Wireshark won't decode with the header, but padded packets will fail ipv6 checksum */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 /* So without the header this needed for RPL mesh to form */
-#define CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
+#define CONTIKIMAC_FRAMER_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
 /* Not tested much yet */
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
-#define RIMESTATS_CONF_ON                      1
-#define NETSTACK_CONF_FRAMER      framer_802154
+#define RIMESTATS_CONF_ENABLED                 1
+
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* The radio needs to interrupt during an rtimer interrupt */
 #define RTIMER_CONF_NESTED_INTERRUPTS 1
 #define RF230_CONF_AUTOACK        1
 /* A 0 here means non-extended mode; 1 means extended mode with no retry, >1 for retrys */
-#define RF230_CONF_AUTORETRIES    1
-/* A 0 here means no cca; 1 means extended mode with cca but no retry, >1 for backoff retrys */
-#define RF230_CONF_CSMARETRIES    1
+#define RF230_CONF_FRAME_RETRIES    1
+/* A 0 here means cca but no retry, >1= for backoff retrys */
+#define RF230_CONF_CSMA_RETRIES    1
 #define SICSLOWPAN_CONF_FRAG      1
 #define SICSLOWPAN_CONF_MAXAGE    3
 /* 211 bytes per queue buffer. Contikimac burst mode needs 15 for a 1280 byte MTU */
@@ -275,18 +272,18 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS  2
 #define UIP_CONF_MAX_LISTENPORTS  2
 #define UIP_CONF_UDP_CONNS        4
-#define UIP_CONF_DS6_NBR_NBU     10
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   2
-#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
 
 #elif 1  /* cx-mac radio cycling */
-/* RF230 does clear-channel assessment in extended mode (autoretries>0) */
-#define RF230_CONF_AUTORETRIES    1
-#if RF230_CONF_AUTORETRIES
+/* RF230 does clear-channel assessment in extended mode (frame retries>0) */
+#define RF230_CONF_FRAME_RETRIES    1
+#if RF230_CONF_FRAME_RETRIES
 #define NETSTACK_CONF_MAC         nullmac_driver
 #else
 #define NETSTACK_CONF_MAC         csma_driver
@@ -308,10 +305,10 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS  2
 #define UIP_CONF_MAX_LISTENPORTS  4
 #define UIP_CONF_UDP_CONNS        5
-#define UIP_CONF_DS6_NBR_NBU      4
+#define NBR_TABLE_CONF_MAX_NEIGHBORS      4
 #define UIP_CONF_DS6_DEFRT_NBU    2
 #define UIP_CONF_DS6_PREFIX_NBU   3
-#define UIP_CONF_DS6_ROUTE_NBU    4
+#define UIP_CONF_MAX_ROUTES    4
 #define UIP_CONF_DS6_ADDR_NBU     3
 #define UIP_CONF_DS6_MADDR_NBU    0
 #define UIP_CONF_DS6_AADDR_NBU    0
@@ -350,6 +347,9 @@ typedef unsigned short uip_stats_t;
 
 #define CCIF
 #define CLIF
+#ifndef CC_CONF_INLINE
+#define CC_CONF_INLINE inline
+#endif
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
@@ -357,4 +357,4 @@ typedef unsigned short uip_stats_t;
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

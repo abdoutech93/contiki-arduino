@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-ipchksum.c,v 1.4 2007/04/04 11:53:07 bg- Exp $
  */
 
 /**
@@ -36,7 +35,7 @@
  *         uIP checksum calculation for MSP430
  */
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #define asmv(arg) __asm__ __volatile__(arg)
 /*---------------------------------------------------------------------------*/

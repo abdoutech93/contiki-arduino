@@ -98,7 +98,7 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-rimeaddr_t macLongAddr;
+linkaddr_t macLongAddr;
 #define	tmp_addr	macLongAddr
 #else                 //legacy radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
@@ -132,7 +132,7 @@ init(void)
 {
 }
 void mac_LowpanToEthernet(void);
-static void
+static int
 output(void)
 {
 //  if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
@@ -142,6 +142,7 @@ output(void)
     PRINTD("SUT: %u\n", uip_len);
     mac_LowpanToEthernet();  //bounceback trap is done in lowpanToEthernet
 //  }
+    return 0;
 }
 const struct uip_fallback_interface rpl_interface = {
   init, output
@@ -493,14 +494,14 @@ uint16_t p=(uint16_t)&__bss_end;
 
   /* Set addresses BEFORE starting tcpip process */
 
-  memset(&tmp_addr, 0, sizeof(rimeaddr_t));
+  memset(&tmp_addr, 0, sizeof(linkaddr_t));
 
   if(get_eui64_from_eeprom(tmp_addr.u8));
    
   //Fix MAC address
   init_net();
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &tmp_addr.u8, 8);
 #endif
 
@@ -513,7 +514,7 @@ uint16_t p=(uint16_t)&__bss_end;
   rf230_set_channel(get_channel_from_eeprom());
   rf230_set_txpower(get_txpower_from_eeprom());
 
-  rimeaddr_set_node_addr(&tmp_addr); 
+  linkaddr_set_node_addr(&tmp_addr); 
 
   /* Initialize stack protocols */
   queuebuf_init();
@@ -552,7 +553,9 @@ uint16_t p=(uint16_t)&__bss_end;
 #else  /* RF230BB */
 /* The order of starting these is important! */
   process_start(&mac_process, NULL);
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 #endif /* RF230BB */
 
   /* Start ethernet network and storage process */
@@ -652,12 +655,12 @@ if ((rtime%PINGS)==1) {
 
 #if ROUTES && UIP_CONF_IPV6_RPL
 if ((rtime%ROUTES)==2) {
-      
-extern uip_ds6_nbr_t uip_ds6_nbr_cache[];
-extern uip_ds6_route_t uip_ds6_routing_table[];
+
 extern uip_ds6_netif_t uip_ds6_if;
 
   uint8_t i,j;
+  uip_ds6_nbr_t *nbr;
+
   PRINTA("\nAddresses [%u max]\n",UIP_DS6_ADDR_NB);
   for (i=0;i<UIP_DS6_ADDR_NB;i++) {
     if (uip_ds6_if.addr_list[i].isused) {
@@ -665,23 +668,27 @@ extern uip_ds6_netif_t uip_ds6_if;
       PRINTA("\n");
     }
   }
-  PRINTA("\nNeighbors [%u max]\n",UIP_DS6_NBR_NB);
-  for(i = 0,j=1; i < UIP_DS6_NBR_NB; i++) {
-    if(uip_ds6_nbr_cache[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_nbr_cache[i].ipaddr);
-      PRINTA("\n");
-      j=0;
-    }
+  PRINTA("\nNeighbors [%u max]\n",NBR_TABLE_MAX_NEIGHBORS);
+
+  for(nbr = nbr_table_head(ds6_neighbors);
+      nbr != NULL;
+      nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    uip_debug_ipaddr_print(&nbr->ipaddr);
+    PRINTA("\n");
+    j=0;
   }
   if (j) PRINTA("  <none>");
   PRINTA("\nRoutes [%u max]\n",UIP_DS6_ROUTE_NB);
-  for(i = 0,j=1; i < UIP_DS6_ROUTE_NB; i++) {
-    if(uip_ds6_routing_table[i].isused) {
-      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].ipaddr);
-      PRINTA("/%u (via ", uip_ds6_routing_table[i].length);
-      uip_debug_ipaddr_print(&uip_ds6_routing_table[i].nexthop);
- //     if(uip_ds6_routing_table[i].state.lifetime < 600) {
-        PRINTA(") %lus\n", uip_ds6_routing_table[i].state.lifetime);
+  uip_ds6_route_t *r;
+  for(r = uip_ds6_route_head();
+      r != NULL;
+      r = uip_ds6_route_next(r)) {
+    if(r->isused) {
+      uip_debug_ipaddr_print(&r->ipaddr);
+      PRINTA("/%u (via ", r->length);
+      uip_debug_ipaddr_print(uip_ds6_route_nexthop(r));
+ //     if(r->state.lifetime < 600) {
+        PRINTA(") %lus\n", r->state.lifetime);
  //     } else {
  //       PRINTA(")\n");
  //     }

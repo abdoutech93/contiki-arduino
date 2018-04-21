@@ -1,17 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup ctimer Callback timer
- * @{
- *
- * The ctimer module provides a timer mechanism that calls a specified
- * C function when a ctimer expires.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.h,v 1.2 2010/06/14 07:35:53 adamdunkels Exp $
  */
 
 /**
@@ -52,8 +37,22 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CTIMER_H__
-#define __CTIMER_H__
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup ctimer Callback timer
+ * @{
+ *
+ * The ctimer module provides a timer mechanism that calls a specified
+ * C function when a ctimer expires.
+ *
+ */
+
+#ifndef CTIMER_H_
+#define CTIMER_H_
 
 #include "sys/etimer.h"
 
@@ -110,9 +109,27 @@ void ctimer_restart(struct ctimer *c);
  *             sometime in the future. When the callback timer expires,
  *             the callback function f will be called with ptr as argument.
  *
+ *             This essentially does ctimer_set_process(c, t, f, ptr, PROCESS_CURRENT());
+ *
  */
 void ctimer_set(struct ctimer *c, clock_time_t t,
 		void (*f)(void *), void *ptr);
+
+/**
+ * \brief      Set a callback timer.
+ * \param c    A pointer to the callback timer.
+ * \param t    The interval before the timer expires.
+ * \param f    A function to be called when the timer expires.
+ * \param ptr  An opaque pointer that will be supplied as an argument to the callback function.
+ * \param p    A pointer to the process the timer belongs to
+ *
+ *             This function is used to set a callback timer for a time
+ *             sometime in the future. When the callback timer expires,
+ *             the callback function f will be called with ptr as argument.
+ *
+ */
+void ctimer_set_with_process(struct ctimer *c, clock_time_t t,
+		void (*f)(void *), void *ptr, struct process *p);
 
 /**
  * \brief      Stop a pending callback timer.
@@ -144,6 +161,6 @@ int ctimer_expired(struct ctimer *c);
  */
 void ctimer_init(void);
 
-#endif /* __CTIMER_H__ */
+#endif /* CTIMER_H_ */
 /** @} */
 /** @} */

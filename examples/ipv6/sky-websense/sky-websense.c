@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: sky-websense.c,v 1.3 2010/06/08 13:27:06 nifi Exp $
  */
 
 /**
@@ -40,7 +39,7 @@
 
 #include "contiki.h"
 #include "httpd-simple.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #include "dev/light-sensor.h"
 #include "dev/leds.h"
 #include <stdio.h>

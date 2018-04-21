@@ -31,16 +31,15 @@
 ; Author: Adam Dunkels <adam@sics.se>, Josef Soucek <josef.soucek@ide64.org>,
 ;         Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: lan91c96.S,v 1.2 2007/12/01 20:23:11 oliverschmidt Exp $
-;
 ;---------------------------------------------------------------------
 
-	.segment	"JUMPTABLE"
+	.macpack	module
+	module_header	_lan91c96
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
 	.byte	$01		; Ethernet driver API version number
-	
+
 	; Ethernet address
 mac:	.byte	$00, $80, $0F	; OUI of Standard Microsystems
 	.byte	$11, $11, $11
@@ -50,30 +49,34 @@ bufaddr:.res	2		; Address
 bufsize:.res	2		; Size
 
 	; Jump table.
-	.addr	init
-	.addr	poll
-	.addr	send
-	.addr	exit
+	jmp init
+	jmp poll
+	jmp send
+	jmp exit
 
 ;---------------------------------------------------------------------
 
-	.zeropage
+	.if DYN_DRV
 
-sp:	.res   	2		; Stack pointer (Do not trash !)
+	.zeropage
+sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Address of register base
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
 
-;---------------------------------------------------------------------
+	.else
 
-	.segment	"EXTZP": zeropage
-	
-	; Empty segment to avoid linker warnings
+	.include "zeropage.inc"
+reg	:=	ptr1		; Address of register base
+ptr	:=	ptr2		; Indirect addressing pointer
+len	:=	ptr3		; Frame length
+
+	.endif
 
 ;---------------------------------------------------------------------
 
 	.rodata
-	
+
 fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup05-fixup04, fixup06-fixup05, fixup07-fixup06
 	.byte	fixup08-fixup07, fixup09-fixup08, fixup10-fixup09
@@ -86,47 +89,47 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup29-fixup28, fixup30-fixup29, fixup31-fixup30
 	.byte	fixup32-fixup31, fixup33-fixup32, fixup34-fixup33
 	.byte	fixup35-fixup34, fixup36-fixup35, fixup37-fixup36
-	.byte	fixup38-fixup37, fixup39-fixup38, fixup40-fixup39
-	.byte	fixup41-fixup40, fixup42-fixup41
+	.byte	fixup38-fixup37, fixup39-fixup38
 
 fixups	= * - fixup
 
 ;---------------------------------------------------------------------
 
-ethbsr		:= $FF0E	; Bank select register             R/W (2B)
+; 3 most significant nibbles are fixed up at runtime
+ethbsr		:= $FFFE	; Bank select register             R/W (2B)
 
 ; Register bank 0
-ethtcr		:= $FF00	; Transmition control register     R/W (2B)
-ethephsr	:= $FF02	; EPH status register              R/O (2B)
-ethrcr		:= $FF04	; Receive control register         R/W (2B)
-ethecr		:= $FF06	; Counter register                 R/O (2B)
-ethmir		:= $FF08	; Memory information register      R/O (2B)
-ethmcr		:= $FF0A	; Memory Config. reg.    +0 R/W +1 R/O (2B)
+ethtcr		:= $FFF0	; Transmition control register     R/W (2B)
+ethephsr	:= $FFF2	; EPH status register              R/O (2B)
+ethrcr		:= $FFF4	; Receive control register         R/W (2B)
+ethecr		:= $FFF6	; Counter register                 R/O (2B)
+ethmir		:= $FFF8	; Memory information register      R/O (2B)
+ethmcr		:= $FFFA	; Memory Config. reg.    +0 R/W +1 R/O (2B)
 
 ; Register bank 1
-ethcr		:= $FF00	; Configuration register           R/W (2B)
-ethbar		:= $FF02	; Base address register            R/W (2B)
-ethiar		:= $FF04	; Individual address register      R/W (6B)
-ethgpr		:= $FF0A	; General address register         R/W (2B)
-ethctr		:= $FF0C	; Control register                 R/W (2B)
+ethcr		:= $FFF0	; Configuration register           R/W (2B)
+ethbar		:= $FFF2	; Base address register            R/W (2B)
+ethiar		:= $FFF4	; Individual address register      R/W (6B)
+ethgpr		:= $FFFA	; General address register         R/W (2B)
+ethctr		:= $FFFC	; Control register                 R/W (2B)
 
 ; Register bank 2
-ethmmucr	:= $FF00	; MMU command register             W/O (1B)
-ethautotx	:= $FF01	; AUTO TX start register           R/W (1B)
-ethpnr		:= $FF02	; Packet number register           R/W (1B)
-etharr		:= $FF03	; Allocation result register       R/O (1B)
-ethfifo		:= $FF04	; FIFO ports register              R/O (2B)
-ethptr		:= $FF06	; Pointer register                 R/W (2B)
-ethdata		:= $FF08	; Data register                    R/W (4B)
-ethist		:= $FF0C	; Interrupt status register        R/O (1B)
-ethack		:= $FF0C	; Interrupt acknowledge register   W/O (1B)
-ethmsk		:= $FF0D	; Interrupt mask register          R/W (1B)
+ethmmucr	:= $FFF0	; MMU command register             W/O (1B)
+ethautotx	:= $FFF1	; AUTO TX start register           R/W (1B)
+ethpnr		:= $FFF2	; Packet number register           R/W (1B)
+etharr		:= $FFF3	; Allocation result register       R/O (1B)
+ethfifo		:= $FFF4	; FIFO ports register              R/O (2B)
+ethptr		:= $FFF6	; Pointer register                 R/W (2B)
+ethdata		:= $FFF8	; Data register                    R/W (4B)
+ethist		:= $FFFC	; Interrupt status register        R/O (1B)
+ethack		:= $FFFC	; Interrupt acknowledge register   W/O (1B)
+ethmsk		:= $FFFD	; Interrupt mask register          R/W (1B)
 
 ; Register bank 3
-ethmt		:= $FF00	; Multicast table                  R/W (8B)
-ethmgmt		:= $FF08	; Management interface             R/W (2B)
-ethrev		:= $FF0A	; Revision register                R/W (2B)
-ethercv		:= $FF0C	; Early RCV register               R/W (2B)
+ethmt		:= $FFF0	; Multicast table                  R/W (8B)
+ethmgmt		:= $FFF8	; Management interface             R/W (2B)
+ethrev		:= $FFFA	; Revision register                R/W (2B)
+ethercv		:= $FFFC	; Early RCV register               R/W (2B)
 
 	.data
 
@@ -146,14 +149,15 @@ init:
 	ldy #$00
 
 	; Fixup address at location
-:	lda reg
-	ora (ptr),y
+:	lda (ptr),y
+	and #$0F
+	ora reg
 	sta (ptr),y
 	iny
 	lda reg+1
 	sta (ptr),y
 	dey
-	
+
 	; Advance to next fixup location
 	inx
 	cpx #fixups
@@ -166,16 +170,24 @@ init:
 	inc ptr+1
 	bcs :-			; Always
 
-	; Reset ETH card
-:	lda #$00		; Bank 0
-fixup00:sta ethbsr
-	
-	lda #%10000000		; Software reset
-fixup01:sta ethrcr+1
+	; Check bank select register upper byte to always read as $33
+:	ldy #$00
+fixup01:sty ethbsr+1
+fixup02:lda ethbsr+1
+	cmp #$33
+	beq :+
+	sec
+	rts
 
-	ldy #$00
-fixup02:sty ethrcr
-fixup03:sty ethrcr+1
+	; Reset ETH card
+:				; Bank 0
+fixup03:sty ethbsr
+
+	lda #%10000000		; Software reset
+fixup04:sta ethrcr+1
+
+fixup05:sty ethrcr
+fixup06:sty ethrcr+1
 
 	; Delay
 :	cmp ($FF,x)		; 6 cycles
@@ -187,63 +199,55 @@ fixup03:sty ethrcr+1
 	; Enable transmit and receive
 	lda #%10000001		; Enable transmit TXENA, PAD_EN
 	ldx #%00000011		; Enable receive, strip CRC ???
-fixup04:sta ethtcr
-fixup05:stx ethrcr+1
+fixup07:sta ethtcr
+fixup08:stx ethrcr+1
 
 	lda #$01		; Bank 1
-fixup06:sta ethbsr
-	
-fixup07:lda ethcr+1
+fixup09:sta ethbsr
+
+fixup10:lda ethcr+1
 	ora #%00010000		; No wait (IOCHRDY)
-fixup08:sta ethcr+1
+fixup11:sta ethcr+1
 
 	lda #%00001001		; Auto release
-fixup09:sta ethctr+1
-  
+fixup12:sta ethctr+1
+
 	; Set MAC address
-	lda mac
-	ldx mac+1
-fixup10:sta ethiar
-fixup11:stx ethiar+1
-	lda mac+2
-	ldx mac+3
-fixup12:sta ethiar+2
-fixup13:stx ethiar+3
-	lda mac+4
-	ldx mac+5
-fixup14:sta ethiar+4
-fixup15:stx ethiar+5
+	ldy #$00
+:	lda mac,y
+fixup13:sta ethiar,y
+	iny
+	cpy #$06
+	bcc :-
 
 	; Set interrupt mask
 	lda #$02		; Bank 2
-fixup16:sta ethbsr
-	
+fixup14:sta ethbsr
+
 	lda #%00000000		; No interrupts
-fixup17:sta ethmsk
+fixup15:sta ethmsk
+	tax
+	clc
 	rts
-	
+
 ;---------------------------------------------------------------------
 
 poll:
-fixup18:lda ethist
+fixup16:lda ethist
 	and #%00000001		; RCV INT
-	bne :+
-
-	; No packet available
-	tax
-	rts
+	beq :+
 
 	; Process the incoming packet
 	; ---------------------------
 	
-:	lda #$00
+	lda #$00
 	ldx #%11100000		; RCV, AUTO INCR., READ
-fixup19:sta ethptr
-fixup20:stx ethptr+1
+fixup17:sta ethptr
+fixup18:stx ethptr+1
 
 	; Last word contains 'last data byte' and $60 or 'fill byte' and $40
-fixup21:lda ethdata		; Status word
-fixup22:lda ethdata		; Need high byte only
+fixup19:lda ethdata		; Status word
+fixup20:lda ethdata		; Need high byte only
 
 	; Move ODDFRM bit into carry:
 	; - Even packet length -> carry clear -> subtract 6 bytes
@@ -253,58 +257,49 @@ fixup22:lda ethdata		; Need high byte only
 	lsr
 	lsr
 	lsr
-	
+
 	; The packet contains 3 extra words
-fixup23:lda ethdata		; Total number of bytes
+fixup21:lda ethdata		; Total number of bytes
 	sbc #$05		; Actually 5 or 6 depending on carry
 	sta len
-fixup24:lda ethdata
+fixup22:lda ethdata
 	sbc #$00
 	sta len+1
 
-	; Is len > bufsize ?
-	sec
-	lda len
-	sbc bufsize
-	lda len+1
-	sbc bufsize+1
-	bcc :+
+	; Is bufsize < len ?
+	lda bufsize
+	cmp len
+	lda bufsize+1
+	sbc len+1
+	bcs :++
 
 	; Yes, skip packet
-	; Remove and release RX packet from the FIFO
-	lda #%10000000
-fixup25:sta ethmmucr
+	jsr releasepacket
 
 	; No packet available
 	lda #$00
-	tax
+:	tax
+	sec
 	rts
 
 	; Read bytes into buffer
-:	lda bufaddr
-	ldx bufaddr+1
-	sta ptr
-	stx ptr+1
-  	ldx len+1
-  	ldy #$00
-read:
-fixup26:lda ethdata
+:	jsr adjustptr
+:
+fixup23:lda ethdata
 	sta (ptr),y
 	iny
-	bne :+
+	bne :-
 	inc ptr+1
-:	cpy len
-	bne read
 	dex
-	bpl read
-  
+	bpl :-
+
 	; Remove and release RX packet from the FIFO
-	lda #%10000000
-fixup27:sta ethmmucr
+	jsr releasepacket
 
 	; Return packet length
 	lda len
 	ldx len+1
+	clc
 	rts
 
 ;---------------------------------------------------------------------
@@ -317,42 +312,43 @@ send:
 	; Allocate memory for TX
 	txa
 	ora #%00100000
-fixup28:sta ethmmucr
+fixup24:sta ethmmucr
 
 	; 8 retries
 	ldy #$08
 
 	; Wait for allocation ready
 :
-fixup29:lda ethist
+fixup25:lda ethist
 	and #%00001000		; ALLOC INT
 	bne :+
 
-	; Shouldn't we do something here to actively free memory,
-	; maybe removing and releasing an RX packet from the FIFO ???
+	; No space avaliable, skip a received frame
+	jsr releasepacket
 
 	; And try again
 	dey
 	bne :-
+	sec
 	rts
 
 	; Acknowledge interrupt, is it necessary ???
 :	lda #%00001000
-fixup30:sta ethack
+fixup26:sta ethack
 
 	; Set packet address
-fixup31:lda etharr
-fixup32:sta ethpnr
+fixup27:lda etharr
+fixup28:sta ethpnr
 
 	lda #$00
 	ldx #%01000000		; AUTO INCR.
-fixup33:sta ethptr
-fixup34:stx ethptr+1
+fixup29:sta ethptr
+fixup30:stx ethptr+1
 
 	; Status written by CSMA
 	lda #$00
-fixup35:sta ethdata
-fixup36:sta ethdata
+fixup31:sta ethdata
+fixup32:sta ethdata
 
 	; Check packet length parity:
 	; - Even packet length -> carry set   -> add 6 bytes
@@ -364,30 +360,23 @@ fixup36:sta ethdata
 	; The packet contains 3 extra words
 	lda len
 	adc #$05		; Actually 5 or 6 depending on carry
-fixup37:sta ethdata
+fixup33:sta ethdata
 	lda len+1
 	adc #$00
-fixup38:sta ethdata
+fixup34:sta ethdata
 
 	; Send the packet
 	; ---------------
 
 	; Write bytes from buffer
-	lda bufaddr
-	ldx bufaddr+1
-	sta ptr
-	stx ptr+1
-	ldx len+1
-	ldy #$00
-write:	lda (ptr),y
-fixup39:sta ethdata
+	jsr adjustptr
+:	lda (ptr),y
+fixup35:sta ethdata
 	iny
-	bne :+
+	bne :-
 	inc ptr+1
-:	cpy len
-	bne write
 	dex
-	bpl write
+	bpl :-
 
 	; Odd packet length ?
 	lda len
@@ -395,23 +384,50 @@ fixup39:sta ethdata
 	bcc :+
 
 	; Yes
-       	lda #%00100000		; ODD
-       	bne :++			; Always
+	lda #%00100000		; ODD
+	bne :++			; Always
 
 	; No
 :	lda #$00
-fixup40:sta ethdata		; Fill byte
+fixup36:sta ethdata		; Fill byte
 :	
-fixup41:sta ethdata		; Control byte
+fixup37:sta ethdata		; Control byte
 
 	; Add packet to FIFO
 	lda #%11000000		; ENQUEUE PACKET - transmit packet
-fixup42:sta ethmmucr
+fixup38:sta ethmmucr
+	clc
 	rts
 
 ;---------------------------------------------------------------------
 
 exit:
 	rts
-	
+
+;---------------------------------------------------------------------
+
+releasepacket:
+	; Remove and release RX packet from the FIFO
+	lda #%10000000
+fixup39:sta ethmmucr
+	rts
+
+;---------------------------------------------------------------------
+
+adjustptr:
+	lda len
+	ldx len+1
+	eor #$FF		; Two's complement part 1
+	tay
+	iny			; Two's complement part 2
+	sty reg
+	sec
+	lda bufaddr
+	sbc reg
+	sta ptr
+	lda bufaddr+1
+	sbc #$00
+	sta ptr+1
+	rts
+
 ;---------------------------------------------------------------------

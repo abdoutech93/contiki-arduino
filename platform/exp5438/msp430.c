@@ -28,12 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.1 2010/08/24 16:26:38 joxe Exp $
  */
 #include "contiki.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 static unsigned long dco_speed;
 

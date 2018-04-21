@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeexamples
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.16 2010/06/16 10:10:10 nifi Exp $
  */
 
 /**
@@ -43,10 +37,15 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "contiki.h"
+/**
+ * \addtogroup rimepoliteannouncement
+ * @{
+ */
 
+#include "contiki.h"
+#include "sys/cc.h"
 #include "lib/list.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/announcement.h"
 #include "net/rime/ipolite.h"
 
@@ -91,8 +90,6 @@ static struct polite_announcement_state {
 #define PRINTF(...)
 #endif
 
-#define MIN(a, b) ((a)<(b)?(a):(b))
-
 /*---------------------------------------------------------------------------*/
 static void
 send_adv(clock_time_t interval)
@@ -113,7 +110,7 @@ send_adv(clock_time_t interval)
 		      sizeof(struct announcement_data) * adata->num);
 
   PRINTF("%d.%d: sending neighbor advertisement with %d announcements\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], adata->num);
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], adata->num);
 
   if(adata->num > 0) {
     /* Send the packet only if it contains more than zero announcements. */
@@ -122,7 +119,7 @@ send_adv(clock_time_t interval)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct ipolite_conn *ipolite, const rimeaddr_t *from)
+adv_packet_received(struct ipolite_conn *ipolite, const linkaddr_t *from)
 {
   struct announcement_msg adata;
   struct announcement_data data;
@@ -134,7 +131,7 @@ adv_packet_received(struct ipolite_conn *ipolite, const rimeaddr_t *from)
   /* Copy number of announcements */
   memcpy(&adata, ptr, sizeof(struct announcement_msg));
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata.num);
 
   if(ANNOUNCEMENT_MSG_HEADERLEN + adata.num * sizeof(struct announcement_data) > packetbuf_datalen()) {

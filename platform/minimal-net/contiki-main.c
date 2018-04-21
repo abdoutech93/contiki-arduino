@@ -33,6 +33,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <time.h>
 #include <sys/select.h>
 #include <unistd.h>
@@ -40,10 +42,11 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
+#include "lib/assert.h"
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
 #else /* __CYGWIN__ */
@@ -51,9 +54,17 @@
 #endif /* __CYGWIN__ */
 
 #ifdef __CYGWIN__
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &wpcap_process, &serial_line_process);
+#endif
 #else /* __CYGWIN__ */
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &tapdev_process, &serial_line_process);
+#endif
 #endif /* __CYGWIN__ */
 
 #if RPL_BORDER_ROUTER
@@ -132,7 +143,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 }
 #endif /* RPL_BORDER_ROUTER */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /*---------------------------------------------------------------------------*/
 static void
 sprint_ip6(uip_ip6addr_t addr)
@@ -171,13 +182,31 @@ sprint_ip6(uip_ip6addr_t addr)
   *result=0;
   printf("%s", thestring);
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
+int contiki_argc = 0;
+char **contiki_argv;
+
 int
-main(void)
+main(int argc, char **argv)
 {
+  /* crappy way of remembering and accessing argc/v */
+  contiki_argc = argc;
+  contiki_argv = argv;
+
+  /* minimal-net under windows is hardcoded to use the first one or two args */
+  /* for wpcap configuration so this needs to be "removed" from contiki_args */
+#ifdef __CYGWIN__
+  contiki_argc--;
+  contiki_argv++;
+#ifdef UIP_FALLBACK_INTERFACE
+  contiki_argc--;
+  contiki_argv++;
+#endif
+#endif
+
   clock_init();
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* A hard coded address overrides the stack default MAC address to
    allow multiple instances. uip6.c defines it as
    {0x00,0x06,0x98,0x00,0x02,0x32} giving an ipv6 address of
@@ -208,7 +237,7 @@ main(void)
   }
  }
 #endif /* HARD_CODED_ADDRESS */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_init();
 /* procinit_init initializes RPL which sets a ctimer for the first DIS */
@@ -227,32 +256,32 @@ main(void)
   autostart_start(autostart_processes); 
 
   /* Set default IP addresses if not specified */
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   {
     uip_ipaddr_t addr;
 
     uip_gethostaddr(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 10,1,1,1);
+      uip_ipaddr(&addr, 172,18,0,2);
     }
     printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     uip_sethostaddr(&addr);
     
     uip_getnetmask(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 255,0,0,0);
+      uip_ipaddr(&addr, 255,255,0,0);
       uip_setnetmask(&addr);
     }
     printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     
     uip_getdraddr(&addr);
     if(addr.u8[0] == 0) {
-      uip_ipaddr(&addr, 10,1,1,100);
+      uip_ipaddr(&addr, 172,18,0,1);
       uip_setdraddr(&addr);
     }
     printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
 #if !UIP_CONF_IPV6_RPL
   {
@@ -260,16 +289,22 @@ main(void)
 #ifdef HARD_CODED_ADDRESS
     uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
 #else
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
 #endif
     if((ipaddr.u16[0] != 0) ||
        (ipaddr.u16[1] != 0) ||
        (ipaddr.u16[2] != 0) ||
        (ipaddr.u16[3] != 0)) {
 #if UIP_CONF_ROUTER
-      uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+      if(!uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0)) {
+        fprintf(stderr,"uip_ds6_prefix_add() failed.\n");
+        exit(EXIT_FAILURE);
+      }
 #else /* UIP_CONF_ROUTER */
-      uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+      if(!uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0)) {
+        fprintf(stderr,"uip_ds6_prefix_add() failed.\n");
+        exit(EXIT_FAILURE);
+      }
 #endif /* UIP_CONF_ROUTER */
 
       uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
@@ -278,7 +313,7 @@ main(void)
   }
 #endif /* !UIP_CONF_IPV6_RPL */
 
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
  // procinit_init();
  // autostart_start(autostart_processes); 
@@ -288,16 +323,19 @@ main(void)
 
   printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
 
-#if UIP_CONF_IPV6 && !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
+#if NETSTACK_CONF_WITH_IPV6 && !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
   {
-    uint8_t i;
+    int i = 0;
+    int interface_count = 0;
     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
       if(uip_ds6_if.addr_list[i].isused) {
-	printf("IPV6 Addresss: ");
-	sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);
-	printf("\n");
+        printf("IPV6 Addresss: ");
+        sprint_ip6(uip_ds6_if.addr_list[i].ipaddr);
+        printf("\n");
+        interface_count++;
       }
     }
+    assert(0 < interface_count);
   }
 #endif
 
@@ -305,14 +343,40 @@ main(void)
     fd_set fds;
     int n;
     struct timeval tv;
+    clock_time_t next_event;
     
     n = process_run();
+    next_event = etimer_next_expiration_time() - clock_time();
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 1000;
+#if DEBUG_SLEEP
+    if(n > 0)
+      printf("sleep: %d events pending\n",n);
+    else
+      printf("sleep: next event @ T-%.03f\n",(double)next_event / (double)CLOCK_SECOND);
+#endif
+
+#ifdef __CYGWIN__
+    /* wpcap doesn't appear to support select, so
+     * we can't idle the process on windows. */
+    next_event = 0;
+#endif
+
+    if(next_event > (CLOCK_SECOND * 2))
+      next_event = CLOCK_SECOND * 2;
+    tv.tv_sec = n ? 0 : (next_event / CLOCK_SECOND);
+    tv.tv_usec = n ? 0 : ((next_event % 1000) * 1000);
+
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
+#ifdef __CYGWIN__
     select(1, &fds, NULL, NULL, &tv);
+#else
+    FD_SET(tapdev_fd(), &fds);
+    if(0 > select(tapdev_fd() + 1, &fds, NULL, NULL, &tv)) {
+      perror("Call to select() failed.");
+      exit(EXIT_FAILURE);
+    }
+#endif
 
     if(FD_ISSET(STDIN_FILENO, &fds)) {
       char c;
@@ -320,6 +384,11 @@ main(void)
 	serial_line_input_byte(c);
       }
     }
+#ifdef __CYGWIN__
+    process_poll(&wpcap_process);
+#else
+    process_poll(&tapdev_process);
+#endif
     etimer_request_poll();
   }
   
@@ -338,6 +407,14 @@ uip_log(char *m)
   printf("uIP: '%s'\n", m);
 }
 /*---------------------------------------------------------------------------*/
+void
+_xassert(const char *file, int line)
+{
+  fprintf(stderr, "%s:%u: failed assertion\n", file, line);
+  abort();
+}
+
+
 unsigned short
 sensors_light1(void)
 {

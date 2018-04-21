@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcp_loader2.c,v 1.3 2010/10/19 18:29:03 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -40,7 +39,7 @@
 #include "loader/cle.h"
 #include "loader/cmod.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/xmem.h"
 

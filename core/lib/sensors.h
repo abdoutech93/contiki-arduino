@@ -28,11 +28,10 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.h,v 1.9 2010/02/23 18:27:04 adamdunkels Exp $
  */
 
-#ifndef __SENSORS_H__
-#define __SENSORS_H__
+#ifndef SENSORS_H_
+#define SENSORS_H_
 
 #include "contiki.h"
 
@@ -70,4 +69,4 @@ extern process_event_t sensors_event;
 
 PROCESS_NAME(sensors_process);
 
-#endif /* __SENSORS_H__ */
+#endif /* SENSORS_H_ */
