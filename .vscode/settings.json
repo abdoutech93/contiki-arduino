@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "sensors.h": "c",
+        "io.h": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "xstddef": "c",
+        "xtr1common": "c",
+        "contiki.h": "c",
+        "xlocale": "c",
+        "istream": "c",
+        "utility": "cpp",
+        "xlocnum": "cpp",
+        "iosfwd": "cpp",
+        "xstring": "cpp"
+    }
+}

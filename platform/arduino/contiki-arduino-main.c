@@ -52,9 +52,8 @@
 #include "dev/rs232.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-
-//#include "sicslowmac.h"
-
+#include "lib/sensors.h"
+#include "net/netstack.h"
 #include "platform-conf.h"
 
 #if 0
@@ -69,6 +68,54 @@ FUSES =
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 #endif
+#if WITH_UIP6
+#include "net/uip-ds6.h"
+#endif /* WITH_UIP6 */
+
+#include "net/rime.h"
+
+#include "node-id.h"
+#include "sys/autostart.h"
+#include "sys/profile.h"
+
+#if UIP_CONF_ROUTER
+
+#ifndef UIP_ROUTER_MODULE
+#ifdef UIP_CONF_ROUTER_MODULE
+#define UIP_ROUTER_MODULE UIP_CONF_ROUTER_MODULE
+#else /* UIP_CONF_ROUTER_MODULE */
+#define UIP_ROUTER_MODULE rimeroute
+#endif /* UIP_CONF_ROUTER_MODULE */
+#endif /* UIP_ROUTER_MODULE */
+
+extern const struct uip_router UIP_ROUTER_MODULE;
+#endif /* UIP_CONF_ROUTER */
+
+#if DCOSYNCH_CONF_ENABLED
+static struct timer mgt_timer;
+#endif
+extern int msp430_dco_required;
+
+#ifndef WITH_UIP
+#define WITH_UIP 0
+#endif
+
+#if WITH_UIP
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/uip-fw-drv.h"
+#include "net/uip-over-mesh.h"
+static struct uip_fw_netif slipif =
+  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+
+#endif /* WITH_UIP */
+
+#define UIP_OVER_MESH_CHANNEL 8
+#if WITH_UIP
+static uint8_t is_gateway;
+#endif /* WITH_UIP */
 
 PROCINIT(&etimer_process, &serial_line_process);
 
@@ -99,14 +146,15 @@ main(void)
 
   /* Clock */
   clock_init();
-
+  rtimer_init();
+  
   /* Process subsystem */
   process_init();
 
   /* Register initial processes */
   procinit_init();
-
-
+  /* Run sensors processes */
+  process_start(&sensors_process, NULL);
   //Give ourselves a prefix
   //init_net();
 

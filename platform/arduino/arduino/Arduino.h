@@ -14,7 +14,17 @@ extern "C"{
 #define OUTPUT 0x1
 #define INPUT_PULLUP 0x2
 
+//Added
+/*---------------------------------------------------------------------------*/
+#define FALSE 0
+#define TRUE 1
+#define interrupts() sei()
+#define noInterrupts() cli()
 
+#define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
+#define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )
+#define microsecondsToClockCycles(a) ( (a) * clockCyclesPerMicrosecond() )
+/*---------------------------------------------------------------------------*/
 // Get the bit location within the hardware port of the given virtual pin.
 // This comes from the pins_*.c file for the active board configuration.
 

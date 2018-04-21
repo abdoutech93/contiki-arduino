@@ -64,6 +64,8 @@
 
 /* LED ports */
 #define PLATFORM_HAS_LEDS    1
+#define LED_BUILTIN 13
+#define LEDS_CONF_YELLOW LED_BUILTIN
 #if 0 
 #define LEDS_PxDIR DDRA /**< port direction register */
 #define LEDS_PxOUT PORTA /**< port register */
@@ -72,7 +74,6 @@
 #define LEDS_CONF_GREEN  0x02 /**< green led */
 #define LEDS_CONF_YELLOW 0x01 /**< yellow led */
 #endif
-
 #include "dev/rs232.h"
 
 /* USART port configuration for SLIP */
@@ -126,7 +127,7 @@
 #define EEPROM_NODE_ID_START 0x00
 
 
-/* #define NETSTACK_CONF_RADIO   cc2420_driver */
+#define NETSTACK_CONF_RADIO   xbee_driver
 
 
 /*

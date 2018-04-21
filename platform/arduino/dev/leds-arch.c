@@ -1,7 +1,7 @@
 #include <dev/leds.h>
 #include "Arduino.h"
 
-#define YELLOW_PIN 13
+#define YELLOW_PIN LED_BUILTIN
 
 void
 leds_arch_init(void)
@@ -22,5 +22,5 @@ leds_arch_get(void)
 void
 leds_arch_set(unsigned char leds)
 {
-  digitalWrite(YELLOW_PIN, leds & LEDS_YELLOW);
+  digitalWrite(YELLOW_PIN, (leds & LEDS_YELLOW));
 }
