@@ -45,7 +45,6 @@
 
 #define HAVE_STDINT_H
 #include "avrdef.h"
-
 #include "platform-conf.h"
 
 #if WITH_UIP6

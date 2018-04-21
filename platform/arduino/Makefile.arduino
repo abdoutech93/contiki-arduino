@@ -5,7 +5,7 @@ CONTIKI_TARGET_MAIN	= ${CONTIKI_CORE}.o
 CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c \
 				mmem.c contiki-arduino-main.c slip.c \
 				wiring_digital.c \
-				leds-arch.c
+				leds-arch.c node-id.c sensors.c
 
 CONTIKIAVR	= $(CONTIKI)/cpu/avr
 CONTIKIBOARD	= .
@@ -94,10 +94,13 @@ include $(CONTIKIAVR)/Makefile.avr
 ##include $(CONTIKI)/cpu/avr/radio/rf230/Makefile.rf230
 ##
 ### Source for Atmel/Cisco 802.15.4'ish MAC
-##include $(CONTIKI)/cpu/avr/radio/mac/Makefile.mac
+#include $(CONTIKI)/cpu/avr/radio/mac/Makefile.mac
 ##
 ### Source for IEEE 802.15.4 manager interface
-##include $(CONTIKI)/cpu/avr/radio/ieee-manager/Makefile.ieee-manager
+#include $(CONTIKI)/cpu/avr/radio/ieee-manager/Makefile.ieee-manager
+##
+### Source for XBee S1 manager interface
+include $(CONTIKI)/cpu/avr/radio/xbee-s1/Makefile.xbee-s1
 
 
 

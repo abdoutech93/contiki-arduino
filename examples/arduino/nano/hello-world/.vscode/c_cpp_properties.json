@@ -1,0 +1,172 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/usr/include",
+                "/usr/local/include",
+                "${workspaceRoot}"
+            ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ]
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/include",
+                "/usr/local/include",
+                "${workspaceRoot}"
+            ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/atlmfc/include/*",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/um",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/ucrt",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/shared",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
+                "${workspaceRoot}"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "browse": {
+                "path": [
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/atlmfc/include/*",
+                    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/um",
+                    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/ucrt",
+                    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/shared",
+                    "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        },
+        {
+            "name": "AVR",
+            "includePath": [
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/cores/arduino",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/variants/eightanaloginputs",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/ArduinoMqtt_ID1390/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/AsyncMqttClient_ID346/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/DHT sensor library_ID19",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/MqttConnector_ID310/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/UltraDistSensor_ID1901",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/XBee_ID6",
+                "C:/Users/Soal Abdeldjallil/.platformio/lib/Contikios/*",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/Wire/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Adafruit_CircuitPlayground",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Adafruit_CircuitPlayground/utility",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Bridge/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Esplora/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Ethernet/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Firmata",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Firmata/utility",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/GSM/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Keyboard/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/LiquidCrystal/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Mouse/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/RobotIRremote/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Robot_Control/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Robot_Motor/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/SD/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Servo/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/SpacebrewYun/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Stepper/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/TFT/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Temboo/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/WiFi/src",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/avr/include",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/4.9.2/include",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/4.9.2/include-fixed",
+                "C:/Users/Soal Abdeldjallil/.platformio/packages/tool-unity",
+                "${workspaceRoot}",
+                ""
+            ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/cores/arduino",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/variants/eightanaloginputs",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/ArduinoMqtt_ID1390/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/AsyncMqttClient_ID346/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/DHT sensor library_ID19",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/MqttConnector_ID310/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/UltraDistSensor_ID1901",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/XBee_ID6",
+                    "C:/Users/Soal Abdeldjallil/.platformio/lib/Contikios/*",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/Wire/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Adafruit_CircuitPlayground",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Adafruit_CircuitPlayground/utility",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Bridge/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Esplora/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Ethernet/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Firmata",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Firmata/utility",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/GSM/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Keyboard/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/LiquidCrystal/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Mouse/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/RobotIRremote/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Robot_Control/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Robot_Motor/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/SD/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Servo/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/SpacebrewYun/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Stepper/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/TFT/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/Temboo/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/framework-arduinoavr/libraries/WiFi/src",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/avr/include",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/4.9.2/include",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/4.9.2/include-fixed",
+                    "C:/Users/Soal Abdeldjallil/.platformio/packages/tool-unity",
+                    "${workspaceRoot}",
+                    ""
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 3
+}

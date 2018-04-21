@@ -14,10 +14,10 @@
 /*---------------------------------------------------------------------------*/
 /* We declare the two processes */
 PROCESS(hello_world_process, "Hello world process");
-
+PROCESS(blink_process, "LED blink process");
 
 /* We require the processes to be started automatically */
-AUTOSTART_PROCESSES(&hello_world_process);
+AUTOSTART_PROCESSES(&hello_world_process, &blink_process);
 /*---------------------------------------------------------------------------*/
 /* Implementation of the first process */
 PROCESS_THREAD(hello_world_process, ev, data)
@@ -54,7 +54,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
         if(ev == PROCESS_EVENT_TIMER)
         {
             /* do the process work */
-            printf("Sensor says Hello... #%d\r\n", count);
+            printf("Sensor says no... #%d\r\n", count);
             count ++;
             
             /* reset the timer so it will generate an other event
@@ -65,6 +65,28 @@ PROCESS_THREAD(hello_world_process, ev, data)
         /* and loop */
     }
     /* any process must end with this, even if it is never reached. */
+    PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+/* Implementation of the second process */
+PROCESS_THREAD(blink_process, ev, data)
+{
+    static struct etimer timer;
+    PROCESS_BEGIN();
+    
+    while (1)
+    {
+        /* we set the timer from here every time */
+        etimer_set(&timer, CLOCK_CONF_SECOND);
+        
+        /* and wait until the event we receive is the one we're waiting for */
+        PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+        
+        printf("Blink LED %d ... (state %0.2X).\r\n",LEDS_YELLOW, leds_get()); 
+        
+        /* update the LEDs */
+        leds_toggle(LEDS_YELLOW);
+    }
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

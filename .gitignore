@@ -5,9 +5,10 @@
 *.log
 *.elf
 *.ihex
+*.project
+*.cproject
 obj_*
 symbols.*
-Makefile.target
 doc/html
 patches-*
 tools/tunslip6
