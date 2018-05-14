@@ -127,6 +127,6 @@ typedef struct XBee {
 	static uint8_t _nextFrameId;
 	// buffer for incoming RX packets.  holds only the api specific frame data, starting after the api id byte and prior to checksum
 	static uint8_t _responseFrameData[MAX_FRAME_DATA_SIZE];
-	static HardwareSerial* _serial;
+	HardwareSerial* _serial;
 /*---------------------------------------------------------------------------*/
 #endif //XBee_h

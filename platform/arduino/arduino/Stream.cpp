@@ -1,19 +1,24 @@
 /*
  Stream.cpp - adds parsing methods to Stream class
  Copyright (c) 2008 David A. Mellis.  All right reserved.
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  Created July 2011
  parsing functions based on TextFinder library by Michael Margolis
+
  findMulti/findUntil routines written by Jim Leonard/Xuth
  */
 
@@ -22,9 +27,8 @@
 
 #define PARSE_TIMEOUT 1000  // default number of milli-seconds to wait
 
-void Stream () {_timeout=1000;}
 // private method to read stream with timeout
-int timedRead()
+int Stream::timedRead()
 {
   int c;
   _startMillis = millis();
@@ -36,7 +40,7 @@ int timedRead()
 }
 
 // private method to peek stream with timeout
-int timedPeek()
+int Stream::timedPeek()
 {
   int c;
   _startMillis = millis();
@@ -49,7 +53,7 @@ int timedPeek()
 
 // returns peek of the next digit in the stream or -1 if timeout
 // discards non-numeric characters
-int peekNextDigit(LookaheadMode lookahead, int detectDecimal)
+int Stream::peekNextDigit(LookaheadMode lookahead, bool detectDecimal)
 {
   int c;
   while (1) {
@@ -80,30 +84,26 @@ int peekNextDigit(LookaheadMode lookahead, int detectDecimal)
 // Public Methods
 //////////////////////////////////////////////////////////////
 
-void setTimeout(unsigned long timeout)  // sets the maximum number of milliseconds to wait
+void Stream::setTimeout(unsigned long timeout)  // sets the maximum number of milliseconds to wait
 {
   _timeout = timeout;
 }
-int find (uint8_t *target) { return find ((char *)target); }
-int find (uint8_t *target, size_t length) { return find ((char *)target, length); }
-int find (char target) { return find (&target, 1); }
-int findUntil (uint8_t *target, char *terminator) { return findUntil((char *)target, terminator); }
-int findUntil (uint8_t *target, size_t targetLen, char *terminate, size_t termLen) {return findUntil((char *)target, targetLen, terminate, termLen); }
+
  // find returns true if the target string is found
-int  find(char *target)
+bool  Stream::find(char *target)
 {
   return findUntil(target, strlen(target), NULL, 0);
 }
 
 // reads data from the stream until the target string of given length is found
 // returns true if target string is found, false if timed out
-int find(char *target, size_t length)
+bool Stream::find(char *target, size_t length)
 {
   return findUntil(target, length, NULL, 0);
 }
 
 // as find but search ends if the terminator string is found
-int  findUntil(char *target, char *terminator)
+bool  Stream::findUntil(char *target, char *terminator)
 {
   return findUntil(target, strlen(target), terminator, strlen(terminator));
 }
@@ -111,7 +111,7 @@ int  findUntil(char *target, char *terminator)
 // reads data from the stream until the target string of the given length is found
 // search terminated if the terminator string is found
 // returns true if target string is found, false if terminated or timed out
-int findUntil(char *target, size_t targetLen, char *terminator, size_t termLen)
+bool Stream::findUntil(char *target, size_t targetLen, char *terminator, size_t termLen)
 {
   if (terminator == NULL) {
     MultiTarget t[1] = {{target, targetLen, 0}};
@@ -127,9 +127,9 @@ int findUntil(char *target, size_t targetLen, char *terminator, size_t termLen)
 // See LookaheadMode enumeration at the top of the file.
 // Lookahead is terminated by the first character that is not a valid part of an integer.
 // Once parsing commences, 'ignore' will be skipped in the stream.
-long parseInt(LookaheadMode lookahead, char ignore)
+long Stream::parseInt(LookaheadMode lookahead, char ignore)
 {
-  int isNegative = false;
+  bool isNegative = false;
   long value = 0;
   int c;
 
@@ -156,10 +156,10 @@ long parseInt(LookaheadMode lookahead, char ignore)
 }
 
 // as parseInt but returns a floating point value
-float parseFloat(LookaheadMode lookahead, char ignore)
+float Stream::parseFloat(LookaheadMode lookahead, char ignore)
 {
-  int isNegative = false;
-  int isFraction = false;
+  bool isNegative = false;
+  bool isFraction = false;
   long value = 0;
   int c;
   float fraction = 1.0;
@@ -199,7 +199,7 @@ float parseFloat(LookaheadMode lookahead, char ignore)
 // returns the number of characters placed in the buffer
 // the buffer is NOT null terminated.
 //
-size_t readBytes(char *buffer, size_t length)
+size_t Stream::readBytes(char *buffer, size_t length)
 {
   size_t count = 0;
   while (count < length) {
@@ -216,7 +216,7 @@ size_t readBytes(char *buffer, size_t length)
 // terminates if length characters have been read, timeout, or if the terminator character  detected
 // returns the number of characters placed in the buffer (0 means no valid data found)
 
-size_t readBytesUntil(char terminator, char *buffer, size_t length)
+size_t Stream::readBytesUntil(char terminator, char *buffer, size_t length)
 {
   if (length < 1) return 0;
   size_t index = 0;
@@ -229,7 +229,7 @@ size_t readBytesUntil(char terminator, char *buffer, size_t length)
   return index; // return number of characters, not including null terminator
 }
 
-String readString()
+String Stream::readString()
 {
   String ret;
   int c = timedRead();
@@ -241,7 +241,7 @@ String readString()
   return ret;
 }
 
-String readStringUntil(char terminator)
+String Stream::readStringUntil(char terminator)
 {
   String ret;
   int c = timedRead();
@@ -253,7 +253,7 @@ String readStringUntil(char terminator)
   return ret;
 }
 
-int findMulti( struct Stream::MultiTarget *targets, int tCount) {
+int Stream::findMulti( struct Stream::MultiTarget *targets, int tCount) {
   // any zero length target string automatically matches and would make
   // a mess of the rest of the algorithm.
   for (struct MultiTarget *t = targets; t < targets+tCount; ++t) {
@@ -317,7 +317,3 @@ int findMulti( struct Stream::MultiTarget *targets, int tCount) {
   // unreachable
   return -1;
 }
-  long parseInt (char ignore) { return parseInt(SKIP_ALL, ignore); }
-    float parseFloat (char ignore) { return parseFloat(SKIP_ALL, ignore); }
-size_t readBytes ( uint8_t *buffer, size_t length) { return readBytes((char *)buffer, length); }
-  size_t readBytesUntil ( char terminator, uint8_t *buffer, size_t length) { return readBytesUntil(terminator, (char *)buffer, length); }

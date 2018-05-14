@@ -1,5 +1,5 @@
 # $Id: Makefile.avr,v 1.27 2010/12/22 21:13:09 dak664 Exp $
-	
+
 .SUFFIXES:
 
 ### Optimization setting. $make OPTI=0 for easier debugging of changed source file(s)
@@ -12,7 +12,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 
 ### These directories will be searched for the specified source files
 ### TARGETLIBS are platform-specific routines in the contiki library path
-CONTIKI_CPU_DIRS            = . dev
+CONTIKI_CPU_DIRS            = . dev dev/arduino
 AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c rtimer-arch.c bootloader.c settings.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
 TARGETLIBS = random.c leds.c
@@ -52,7 +52,7 @@ ifdef COFFEE_FILES                #if files are defined force definition of COFF
   endif
  endif
  COFFEE_ADDRESS1 = $(shell echo $$(( $(COFFEE_ADDRESS) + 1 )))
- CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c 
+ CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
  CFLAGS += -DCOFFEE_FILES=$(COFFEE_FILES) -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
  ifneq ($(COFFEE_ADDRESS), DEFAULT)
   LDFLAGS+= -Wl,--section-start=.coffeefiles=$(COFFEE_ADDRESS)
@@ -88,6 +88,7 @@ CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 ### Compiler definitions
 CC       = avr-gcc
+CXX      = avr-g++
 LD       = avr-gcc
 AS       = avr-as
 AR       = avr-ar
@@ -99,12 +100,22 @@ CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
             -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
             $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
+ASFLAGS  += -mmcu=$(MCU)
 ifndef BOOTLOADER_START
   BOOTLOADER_START = 0x1F800
 endif
 
 LDFLAGS  += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
            -Wl,--section-start=.bootloader=$(BOOTLOADER_START)
+
+SMALL ?= 1
+
+### These flags help significantly reduce the code size
+ifeq ($(SMALL),1)
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+LDFLAGS += -Wl,--gc-sections
+endif # SMALL
 
 ### Setup directory search path for source files
 
@@ -118,6 +129,12 @@ $(OBJECTDIR)/%.o: %.c
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJECTDIR)/%.o: %.cpp | $(OBJECTDIR)
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+%.o: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
 
 %.ko: %.o
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
@@ -141,7 +158,7 @@ endif
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
 ifdef SYMBOLS
-	$(CONTIKI)/tools/avr-make-symbols $@ 
+	$(CONTIKI)/tools/avr-make-symbols $@
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
 	$(CONTIKI)/tools/avr-make-symbols $@
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
@@ -183,6 +200,12 @@ endif
 
 ### Upload image
 #Let avrdude use defaults if port or programmer not defined
+AVRDUDE ?= avrdude
+ifdef AVRDUDE_MCU
+ DUDE_MCU:=-p $(AVRDUDE_MCU)
+else
+ DUDE_MCU:=-p $(MCU)
+endif
 ifdef AVRDUDE_PORT
  AVRDUDE_PORT:=-P $(AVRDUDE_PORT)
 endif

@@ -31,7 +31,7 @@
 // Public Methods //////////////////////////////////////////////////////////////
 
 /* default implementation: may be overridden */
-size_t write(const uint8_t *buffer, size_t size)
+size_t Print::write(const uint8_t *buffer, size_t size)
 {
   size_t n = 0;
   while (size--) {
@@ -41,7 +41,7 @@ size_t write(const uint8_t *buffer, size_t size)
   return n;
 }
 
-size_t  print(const __FlashStringHelper *ifsh)
+size_t Print::print(const __FlashStringHelper *ifsh)
 {
   PGM_P p = reinterpret_cast<PGM_P>(ifsh);
   size_t n = 0;
@@ -54,37 +54,37 @@ size_t  print(const __FlashStringHelper *ifsh)
   return n;
 }
 
-size_t  print(const String &s)
+size_t Print::print(const String &s)
 {
   return write(s.c_str(), s.length());
 }
 
-size_t  print(const char str[])
+size_t Print::print(const char str[])
 {
   return write(str);
 }
 
-size_t  print(char c)
+size_t Print::print(char c)
 {
   return write(c);
 }
 
-size_t  print(unsigned char b, int base)
+size_t Print::print(unsigned char b, int base)
 {
   return print((unsigned long) b, base);
 }
 
-size_t  print(int n, int base)
+size_t Print::print(int n, int base)
 {
   return print((long) n, base);
 }
 
-size_t  print(unsigned int n, int base)
+size_t Print::print(unsigned int n, int base)
 {
   return print((unsigned long) n, base);
 }
 
-size_t  print(long n, int base)
+size_t Print::print(long n, int base)
 {
   if (base == 0) {
     return write(n);
@@ -100,98 +100,98 @@ size_t  print(long n, int base)
   }
 }
 
-size_t  print(unsigned long n, int base)
+size_t Print::print(unsigned long n, int base)
 {
   if (base == 0) return write(n);
   else return printNumber(n, base);
 }
 
-size_t  print(double n, int digits)
+size_t Print::print(double n, int digits)
 {
   return printFloat(n, digits);
 }
 
-size_t  println(const __FlashStringHelper *ifsh)
+size_t Print::println(const __FlashStringHelper *ifsh)
 {
   size_t n = print(ifsh);
   n += println();
   return n;
 }
 
-size_t  print(const Printable& x)
+size_t Print::print(const Printable& x)
 {
   return x.printTo(*this);
 }
 
-size_t  println(void)
+size_t Print::println(void)
 {
   return write("\r\n");
 }
 
-size_t  println(const String &s)
+size_t Print::println(const String &s)
 {
   size_t n = print(s);
   n += println();
   return n;
 }
 
-size_t  println(const char c[])
+size_t Print::println(const char c[])
 {
   size_t n = print(c);
   n += println();
   return n;
 }
 
-size_t  println(char c)
+size_t Print::println(char c)
 {
   size_t n = print(c);
   n += println();
   return n;
 }
 
-size_t  println(unsigned char b, int base)
+size_t Print::println(unsigned char b, int base)
 {
   size_t n = print(b, base);
   n += println();
   return n;
 }
 
-size_t  println(int num, int base)
+size_t Print::println(int num, int base)
 {
   size_t n = print(num, base);
   n += println();
   return n;
 }
 
-size_t  println(unsigned int num, int base)
+size_t Print::println(unsigned int num, int base)
 {
   size_t n = print(num, base);
   n += println();
   return n;
 }
 
-size_t  println(long num, int base)
+size_t Print::println(long num, int base)
 {
   size_t n = print(num, base);
   n += println();
   return n;
 }
 
-size_t  println(unsigned long num, int base)
+size_t Print::println(unsigned long num, int base)
 {
   size_t n = print(num, base);
   n += println();
   return n;
 }
 
-size_t  println(double num, int digits)
+size_t Print::println(double num, int digits)
 {
   size_t n = print(num, digits);
   n += println();
   return n;
 }
 
-size_t  println(const Printable& x)
+size_t Print::println(const Printable& x)
 {
   size_t n = print(x);
   n += println();
@@ -200,7 +200,7 @@ size_t  println(const Printable& x)
 
 // Private Methods /////////////////////////////////////////////////////////////
 
-size_t  printNumber(unsigned long n, uint8_t base) {
+size_t Print::printNumber(unsigned long n, uint8_t base) {
   char buf[8 * sizeof(long) + 1]; // Assumes 8-bit chars plus zero byte.
   char *str = &buf[sizeof(buf) - 1];
 
@@ -219,7 +219,7 @@ size_t  printNumber(unsigned long n, uint8_t base) {
   return write(str);
 }
 
-size_t  printFloat(double number, uint8_t digits) 
+size_t Print::printFloat(double number, uint8_t digits) 
 { 
   size_t n = 0;
   
@@ -263,13 +263,3 @@ size_t  printFloat(double number, uint8_t digits)
   
   return n;
 }
-size_t write (const char *str) {
-      if (str == NULL) return 0;
-      return write((const uint8_t *)str, strlen(str));
-    }
-    size_t write (const char *buffer, size_t size) {
-      return write((const uint8_t *)buffer, size);
-    }
-void setWriteError (int err) { write_error = err; }
-int getWriteError (void) { return write_error; }
-void clearWriteError (void ) { setWriteError(0); }

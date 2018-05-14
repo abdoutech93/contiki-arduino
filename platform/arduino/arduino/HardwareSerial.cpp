@@ -1,14 +1,17 @@
 /*
   HardwareSerial.cpp - Hardware serial library for Wiring
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -75,7 +78,7 @@ void serialEventRun(void)
 
 // Actual interrupt handlers //////////////////////////////////////////////////////////////
 
-void _tx_udr_empty_irq(void)
+void HardwareSerial::_tx_udr_empty_irq(void)
 {
   // If interrupts are enabled, there must be more data in the output
   // buffer. Send the next byte
@@ -96,8 +99,8 @@ void _tx_udr_empty_irq(void)
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
-void begin (unsigned long baud) { begin(baud, SERIAL_8N1); }
-void begin(unsigned long baud, byte config)
+
+void HardwareSerial::begin(unsigned long baud, byte config)
 {
   // Try u2x mode first
   uint16_t baud_setting = (F_CPU / 4 / baud - 1) / 2;
@@ -132,7 +135,7 @@ void begin(unsigned long baud, byte config)
   cbi(*_ucsrb, UDRIE0);
 }
 
-void end()
+void HardwareSerial::end()
 {
   // wait for transmission of outgoing data
   flush();
@@ -146,12 +149,12 @@ void end()
   _rx_buffer_head = _rx_buffer_tail;
 }
 
-int available(void)
+int HardwareSerial::available(void)
 {
   return ((unsigned int)(SERIAL_RX_BUFFER_SIZE + _rx_buffer_head - _rx_buffer_tail)) % SERIAL_RX_BUFFER_SIZE;
 }
 
-int peek(void)
+int HardwareSerial::peek(void)
 {
   if (_rx_buffer_head == _rx_buffer_tail) {
     return -1;
@@ -160,7 +163,7 @@ int peek(void)
   }
 }
 
-int read(void)
+int HardwareSerial::read(void)
 {
   // if the head isn't ahead of the tail, we don't have any characters
   if (_rx_buffer_head == _rx_buffer_tail) {
@@ -172,7 +175,7 @@ int read(void)
   }
 }
 
-int availableForWrite(void)
+int HardwareSerial::availableForWrite(void)
 {
 #if (SERIAL_TX_BUFFER_SIZE>256)
   uint8_t oldSREG = SREG;
@@ -187,7 +190,7 @@ int availableForWrite(void)
   return tail - head - 1;
 }
 
-void flush()
+void HardwareSerial::flush()
 {
   // If we have never written a byte, no need to flush. This special
   // case is needed since there is no way to force the TXC (transmit
@@ -206,12 +209,8 @@ void flush()
   // If we get here, nothing is queued anymore (DRIE is disabled) and
   // the hardware finished tranmission (TXC is set).
 }
-size_t write (unsigned long n) { return write((uint8_t)n); }
-    size_t write (long n) { return write((uint8_t)n); }
-    size_t write (unsigned int n) { return write((uint8_t)n); }
-    size_t write (int n) { return write((uint8_t)n); }
-    int bool() { return TRUE; }
-size_t write(uint8_t c)
+
+size_t HardwareSerial::write(uint8_t c)
 {
   _written = true;
   // If the buffer and the data register is empty, just write the byte

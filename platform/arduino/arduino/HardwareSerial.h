@@ -1,17 +1,21 @@
 /*
   HardwareSerial.h - Hardware serial library for Wiring
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
   Modified 28 September 2010 by Mark Sproul
   Modified 14 August 2012 by Alarus
   Modified 3 December 2013 by Matthijs Kooijman
@@ -86,33 +90,9 @@ typedef uint8_t rx_buffer_index_t;
 #define SERIAL_7O2 0x3C
 #define SERIAL_8O2 0x3E
 
-typedef struct HardwareSerial
+class HardwareSerial : public Stream
 {
-     void (*HardwareSerial)(
-      volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
-      volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
-      volatile uint8_t *ucsrc, volatile uint8_t *udr);
-    void (*begin) (unsigned long baud);
-    void (*begin) (unsigned long, uint8_t);
-    void (*end) (void);
-    int (*available) (void);
-    int (*peek) (void);
-    int (*read) (void);
-    int (*availableForWrite) (void);
-    void (*flush) (void);
-    size_t (*write) (uint8_t);
-    size_t (*write) (unsigned long n);
-    size_t (*write) (long n);
-    size_t (*write) (unsigned int n);
-    size_t (*write) (int n);
-    int (*bool) (void);
-
-    // Interrupt handlers - Not intended to be called externally
-    void (*_rx_complete_irq) (void);
-    void (*_tx_udr_empty_irq) (void);
-    struct Stream;
-}HardwareSerial;
-    
+  protected:
     volatile uint8_t * const _ubrrh;
     volatile uint8_t * const _ubrrl;
     volatile uint8_t * const _ucsra;
@@ -120,7 +100,7 @@ typedef struct HardwareSerial
     volatile uint8_t * const _ucsrc;
     volatile uint8_t * const _udr;
     // Has any byte been written to the UART since begin()
-    int _written;
+    bool _written;
 
     volatile rx_buffer_index_t _rx_buffer_head;
     volatile rx_buffer_index_t _rx_buffer_tail;
@@ -132,6 +112,32 @@ typedef struct HardwareSerial
     // instruction.
     unsigned char _rx_buffer[SERIAL_RX_BUFFER_SIZE];
     unsigned char _tx_buffer[SERIAL_TX_BUFFER_SIZE];
+
+  public:
+    inline HardwareSerial(
+      volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
+      volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
+      volatile uint8_t *ucsrc, volatile uint8_t *udr);
+    void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
+    void begin(unsigned long, uint8_t);
+    void end();
+    virtual int available(void);
+    virtual int peek(void);
+    virtual int read(void);
+    int availableForWrite(void);
+    virtual void flush(void);
+    virtual size_t write(uint8_t);
+    inline size_t write(unsigned long n) { return write((uint8_t)n); }
+    inline size_t write(long n) { return write((uint8_t)n); }
+    inline size_t write(unsigned int n) { return write((uint8_t)n); }
+    inline size_t write(int n) { return write((uint8_t)n); }
+    using Print::write; // pull in write(str) and write(buf, size) from Print
+    operator bool() { return true; }
+
+    // Interrupt handlers - Not intended to be called externally
+    inline void _rx_complete_irq(void);
+    void _tx_udr_empty_irq(void);
+};
 
 #if defined(UBRRH) || defined(UBRR0H)
   extern HardwareSerial Serial;
